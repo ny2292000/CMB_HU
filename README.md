@@ -17,10 +17,27 @@ Lambda-Cold Dark Matter and Dark Energy.
 Needless to say, this is not something welcomed by the community. HU has been censored since 2004
 
 The most up-t0-date article describing HU can be found here:
-issuu.com/marcopereira11/docs/huarticle
+2017: The Hypergeometrical Universe Theory: Cosmogenesis, Cosmology and Standard Model
+http://www.worldscientificnews.com/wp-content/uploads/2017/07/WSN-82-2017-1-96-1.pdf
+
+2018:The Case for the 4th Spatial Dimension and the Hypergeometrical Force
+http://www.worldscientificnews.com/wp-content/uploads/2018/02/WSN-98-2018-127-139.pdf
+
+2018: The Coma Cluster, Bullet Cluster, and Weak Gravitational Lensing
+http://www.worldscientificnews.com/wp-content/uploads/2018/04/WSN-101-2018-222-228.pdf
+
+2019: The Optical Path of Ancient Photons and the Supernova Project
+https://papers.ssrn.com/sol3/papers.cfm?abstract_id=3399192
+
+Was Dr. Marco Pereira's Hypergeometrical Universe Theory (HU) peer-reviewed, presented in conferences, book chapters, and journal articles? Why is it still being censored?
+https://www.quora.com/Was-Dr-Marco-Pereiras-Hypergeometrical-Universe-Theory-HU-peer-reviewed-presented-in-conferences-book-chapters-and-journal-articles-Why-is-it-still-being-censored
+
+How much support does the Hypergeometrical Universe Theory (HU) has:
+https://www.quora.com/How-much-support-from-astronomy-does-the-Hypergeometrical-Universe-Theory-HU-have/answer/Marco-Pereira-1
 
 The map of the Universe can be found here:
-https://www.youtube.com/watch?v=ytuEctnD334
+https://youtu.be/MLqkbCAzcJM
+
 This map shows the positioning of all 1.3 million galaxies from the Sloan Digital Sky Survey into our current epoch.
 One can see a lighter color indicating higher concentration of galaxies. 
 
