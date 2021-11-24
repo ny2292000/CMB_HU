@@ -25,22 +25,17 @@ This map shows the positioning of all 1.3 million galaxies from the Sloan Digita
 One can see a lighter color indicating higher concentration of galaxies. 
 
 This next map shows the cross-section along Declination and alpha 
-(distance - alpha = 1 implies distance equal to R0 or 13.58 Gly).
+(distance - alpha = 1 implies distance equal to R0 or 14 Gly).
 
 https://www.youtube.com/watch?v=YfxqMsnAinE
 
-This cross-section shows the 10 Bangs that occurred after the Universe was put into motion 
-(traveling at the speed of light in 1E-24 seconds).  
+ 
 As the Universe expanded, the Universe moved through phases: Blackholium, Neutronium and finally Baryonium.
 
-We assign the 10-Bangs to the Neutronium to Baryonium transition. 
 At the Neutronium phase, the Universe is just made of Neutrons.  
 
 Slight variations in density allow for slightly asymmetric Neutron evaporation.
 Wherever Neutrons become free, energy is released. That energy drives the Bangs and the seeding of galaxies.
-
-At each Bang (crescendo in intensity), matter was repacked by the standing waves. That is what we are seeing
-in that Universe cross-section.
 
 Please, feel free to ask questions and replicate all my calculations.  Enjoy playing with the Universe
 
