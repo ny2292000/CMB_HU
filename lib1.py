@@ -6,12 +6,19 @@ import scipy.integrate as integrate
 import scipy.interpolate as sp
 from scipy.optimize import minimize
 from scipy.special import gamma as gammaF
+from parameters import *
 
 def volumeCalc(n, phi, r):
     if phi==2:
         return 4/3*np.pi*r**3
     return np.pi ** ((n - 1) / 2) * r ** 3 / gammaF((n - 1) / 2) * \
            integrate.quad(lambda x: np.sin(x) ** int(n - 2), 0, phi)[0]
+
+def whatIsY(t):
+    radius = (t * cc.c + dbh_radius).to("lyr")
+    dilution = float(  (dbh_radius / radius) ** 3  )
+    y = dbh_y * dilution
+    return  y
 
 
 from parameters import *
@@ -21,42 +28,106 @@ c = 1
 R0 = 1
 pi4 = math.pi / 4.0
 sqrt2 = math.sqrt(2)
+RR=14.03E9*uu.lyr.si
 
+today=4.428e+17
+today_y= whatIsY(today*uu.s)
+today_y=today_y
+
+
+
+def findjump(y):
+    x0=y[1]
+    for x in y[2:]:
+        if np.abs(x-x0)>1:
+            return [x0,x]
+        x0=x
+    return []
 
 class Universe():
     def __init__(self, eta, alpha, alpha_L, eta_L, T0, gamma, n0,vssquaredpd):
-        # Calculate gammaT for the region Transparency to Today
+#          Characterize Transparency.
         ionizationfraction=0.5
-        self.gammaT, self.z_transparency, self.TransparencyRadius, self.TransparencyTime, self.densityAtTransparency, \
-            self.T_at_Transparency = findGammaT(ionizationfraction)
-        self.k0 = []
+        gammaT, z_transparency, TransparencyRadius, TransparencyTime, densityAtTransparency, \
+            T_at_Transparency = findGammaT(ionizationfraction)
+        gammaT = gammaT[0]
+        TransparencyRadius = TransparencyRadius.value
+        TransparencyTime=TransparencyTime.value
+        densityAtTransparency=densityAtTransparency.value 
+        T_at_Transparency=T_at_Transparency.value
+#       proton fraction calculation
+        n=1000
+        protonfraction = np.linspace(1,0,n)
+        xout = findprotonfraction(protonfraction, eta, alpha, alpha_L, eta_L, T0, gamma, n0)
 
-        # Calculate Sound Velocitity
-        df1,xSound = findVSoundCurveParameters(vssquaredpd)
-        self.df1 = df1
-        self.df2 = vssquaredpd
-        self.xSound=xSound
+        yy=np.linspace(dbh_y,xout.y.max(),300)
+        xin= pd.DataFrame(index=np.arange(len(yy)), columns=["y","ProtonFraction",])
+        xin.y=yy
+        xin.ProtonFraction=0.0
+        xin=pd.concat([xout,xin])
+        xin = xin.sort_values(by="y")
 
-        # Calculate Proton Fraction
-        protonfraction = findprotonfraction(eta, alpha, alpha_L, eta_L, T0, self.gammaT, n0)
         densityBlackholium = dbh_y
         densityNeutronium = dneutron_y
-        densityPreBigBang = protonfraction.iloc[-1].y
-        densityPostBigBang = protonfraction.iloc[0].y
-        self.lowestPF = protonfraction.iloc[-1].x
-        densityAtPreFreezing = (300 * (uu.MeV / uu.fm ** 3) / mn / n0).si.value
+        densityPreBigBang = xout.iloc[-1].y
+        densityPostBigBang = xout.iloc[0].y
 
-        self.PreFreezingY = densityAtPreFreezing
-        self.PreBigBang = densityPreBigBang
-        self.PostBigBang = densityPostBigBang
+        # Velocity of Sound
+        x=xin.y.values
+        y = self.vs(x ,xin.ProtonFraction.values)
 
-        densityAtFreezing = (50 * (uu.MeV / uu.fm ** 3) / mn / n0).si.value
-        ionizationfraction = 0.5
-        z, TransparencyRadius, TransparencyTime, densityAtTransparency, T_at_Transparency = \
-                                            findTransparencyEpoch(ionizationfraction)
-        densityAtTransparency = densityAtTransparency.value
-        densityToday = (rho * cc.c ** 2 / mn / n0).si.value
+        ind = y>=1/3
+        y[ind]=1/3
+        densityAtPreFreezing = x[ind][0]
 
+        ind = y<=0.01
+        densityAtFreezing = x[ind][-1]
+
+        # VS and ProtonFraction
+
+        df = pd.DataFrame(columns=["t","y","r", "Vs","ProtonFraction","Energy","Temperature","Pressure"])
+        df.ProtonFraction =xin.ProtonFraction
+        df.y = xin.y
+        dff = pd.DataFrame(columns=["t","y","r", "Vs","ProtonFraction","Energy","Temperature","Pressure"])
+        dff.y= np.concatenate( [np.geomspace(densityPostBigBang, densityAtTransparency, 300), 
+                                np.geomspace(densityAtTransparency, today_y, 300), 
+                                [densityBlackholium,densityNeutronium,densityAtPreFreezing,densityAtFreezing,
+                                 densityPreBigBang,densityPostBigBang,densityAtTransparency,today_y ]])
+        dff =dff.drop_duplicates(subset=["y"])
+
+        dff.ProtonFraction = 1.0
+        dff.Vs =0.0
+
+        df = pd.concat([df,dff])
+        df = df.drop_duplicates(subset=["y"])
+        df.Vs=self.vs(df.y,df.ProtonFraction)
+        ind = df.Vs>=1/3
+        df.Vs.loc[ind]=1/3
+        df.Energy = KE(df.y, df.ProtonFraction, eta, alpha, alpha_L, eta_L, T0, gamma, n0)*df.y
+        df.Pressure= Pressure(df.y, df.ProtonFraction, eta, alpha, alpha_L, eta_L, T0, gamma, n0)
+        df["Density"] = [ (y*n0*cc.m_n).to("kg/m**3").value for y in df.y]
+        df["t"] = [ whatIsTime(y) for y in df.y]
+        df["r"] = [ whatIsRadius(y) for y in df.y]
+        df = df.sort_values(by="y")
+        df.index = np.arange(len(df))
+        df =df.drop_duplicates(subset=["y"])
+        self.df=df.copy()
+        self.getEnergyPressure()
+        
+        # Derive Gamma from Energy and Pressure curves
+        logP= np.log(self.df.Pressure)
+        logy = np.log(self.df.y)
+        dlogP = logP[1:].values-logP[0:-1].values
+        dlogy = logy[1:].values - logy[0:-1].values
+        self.df["gammaFromPressureY"]=None
+        self.df.gammaFromPressureY.iloc[0:-1]=dlogP/dlogy
+        self.df = self.df.sort_values(by="y", ascending = False)
+        self.df = self.df.reset_index(drop=True)
+        self.df.gammaFromPressureY.ffill(inplace=True)
+        self.df.gammaFromPressureY.bfill(inplace=True)
+        self.getTemperature()
+        self.df["TemperatureDensity"]= self.df.Temperature*self.df.Density
+        ################################
         self.y_Seq = pd.DataFrame.from_dict({"densityBlackholium": densityBlackholium,
                                              "densityNeutronium": densityNeutronium,
                                              "densityAtPreFreezing": densityAtPreFreezing,
@@ -64,51 +135,34 @@ class Universe():
                                              "densityPreBigBang": densityPreBigBang,
                                              "densityPostBigBang": densityPostBigBang,
                                              "densityAtTransparency": densityAtTransparency,
-                                             "densityToday": densityToday}, orient="index", columns=["y"], dtype=float)
+                                             "densityToday": today_y}, orient="index", columns=["y"], dtype=float)
 
-        self.y_Seq["t"] = np.nan
-        self.y_Seq["radius"] = np.nan
 
-        for row in self.y_Seq.iterrows():
-            t, y, r = whatTimeRadius(row[1]["y"])
-            row[1]["t"] = t
-            row[1]["radius"] = r
 
-        self.y_Seq = self.y_Seq.sort_values(by="t")
 
-        finalindex = []
-        a0 = self.y_Seq.y[0]
-        for a in self.y_Seq.y[1:-5]:
-            b = np.linspace(start=a0, stop=a, num=101)
-            finalindex += list(b[0:-1:])
-            a0 = a
-        finalindex += [b[-1]]
-        for a in self.y_Seq.y[-5::]:
-            b = np.geomspace(start=a0, stop=a, num=101)
-            finalindex += list(b[0:-1:])
-            a0 = a
-        finalindex += [b[-1]]
-        self.TransparenceIndex = [i for i, x in enumerate(finalindex) if abs(x - densityAtTransparency) / x < 0.01][0]
-        self.TransparenceTemperature = T_at_Transparency.value
+        self.y_Seq["Energy"]=np.nan
+        self.y_Seq["Pressure"]=np.nan
+        self.y_Seq["t"]=np.nan
+        self.y_Seq["radius"]=np.nan
+        self.y_Seq["Density"]=np.nan
+        self.y_Seq["Temperature"]=np.nan
 
-        self.y_Seq["Density"] = [(x * n0 * mn / cc.c ** 2).si.value for x in self.y_Seq.y]
+        for name,yk in zip(self.y_Seq.index,self.y_Seq.y) :
+            self.y_Seq.loc[name]["Energy"]=self.df[self.df.y==yk].Energy
+            self.y_Seq.loc[name]["Pressure"]=self.df[self.df.y==yk].Pressure
+            self.y_Seq.loc[name]["t"]=self.df[self.df.y==yk].t
+            self.y_Seq.loc[name]["radius"]=self.df[self.df.y==yk].r
+            self.y_Seq.loc[name]["Density"]=self.df[self.df.y==yk].Density
+            self.y_Seq.loc[name]["Temperature"]=self.df[self.df.y==yk].Temperature
 
-        finalcolumns = ["t", "y", "radius", "Temperature", "Energy", "Pressure", "Proton_Fraction", "VSound", "Density"]
-        self.df = pd.DataFrame(index=finalindex, columns=finalcolumns, dtype=np.float_)
-        self.df.y = self.df.index
 
-        protonfractionInterp = sp.interp1d(protonfraction.y, protonfraction.x)
-        for i, row in self.df.iterrows():
-            y = row["y"]
-            t, yy, radius = whatTimeRadius(y)
-            x = interpolateProtonFraction(y, self.lowestPF, self.y_Seq.loc["densityPreBigBang", "y"],
-                                          self.y_Seq.loc["densityPostBigBang", "y"], protonfractionInterp)
-            row["t"] = t
-            row["radius"] = radius
-            row["Proton_Fraction"] = x
-            row["VSound"] = actualVS(t, self.xSound)
-            row["Density"] = (row["y"] * n0 * mn / cc.c ** 2).si.value
 
+ 
+    def vs(self, y,x):
+        return 1/3*((15*(2*(eta - 2*eta_L)*(x - 1)*x - eta_L)*T0*(gamma - 1)*gamma*y**(gamma - 2)/n0 + 2*2**(2/3)*(x**(5/3) + (-x + 1)**(5/3))*T0/(n0*y**(4/3)))*n0**2*y**2 + 6*(5*(2*(eta - 2*eta_L)*(x - 1)*x - eta_L)*T0*gamma*y**(gamma - 1)/n0 - 2*2**(2/3)*(x**(5/3) + (-x + 1)**(5/3))*T0/(n0*y**(1/3)) - 5*(2*(alpha - 2*alpha_L)*(x - 1)*x - alpha_L)*T0/n0)*n0**2*y)/((5*(2*(eta - 2*eta_L)*(x - 1)*x - eta_L)*T0*gamma*y**(gamma - 1) - 2*2**(2/3)*(x**(5/3) + (-x + 1)**(5/3))*T0/y**(1/3) - 5*(2*(alpha - 2*alpha_L)*(x - 1)*x - alpha_L)*T0)*n0*y - (3*2**(2/3)*(x**(5/3) + (-x + 1)**(5/3))*T0*y**(2/3) + 5*(2*(alpha - 2*alpha_L)*(x - 1)*x - alpha_L)*T0*y - 5*(2*(eta - 2*eta_L)*(x - 1)*x - eta_L)*T0*y**gamma - 5*MN*(x - 1) + 5*(ME + MP)*x)*n0)
+
+
+    
     def pickleme(self):
         self.df.to_pickle("./df.pkl")
         self.y_Seq.to_pickle("./y_Seq.pkl")
@@ -144,7 +198,7 @@ class Universe():
         NumberOfSupernovae = (BigBangEnergy / EnergyPerSupernova).si
 
         ls = uu.lyr / 365.25 / 24 / 3600
-        print("Optimized K0 = ", self.k0)
+#         print("Optimized K0 = ", self.k0)
         print(
             "\n",
             "Initial 4D Radius of the Universe = ", (self.y_Seq.loc["densityBlackholium", "radius"] * uu.lyr).to(ls),
@@ -179,64 +233,70 @@ class Universe():
 
     def getEnergyPressure(self):
         for i, row in self.df.iterrows():
-            row["Energy"] = KE(row["y"], row["Proton_Fraction"], eta, alpha, alpha_L, eta_L, T0, gamma, n0)
-            row["Pressure"] = Pressure(row["y"], 0, eta, alpha, alpha_L, eta_L, T0, gamma, n0).si.value
-        return self.df
-
+            self.df.loc[self.df.y==row.y, "Energy"] = KE(row["y"], row["ProtonFraction"], eta, alpha, alpha_L, eta_L, T0, gamma, n0)
+            self.df.loc[self.df.y==row.y, "Pressure"] = Pressure(row["y"], row["ProtonFraction"], eta, alpha, alpha_L, eta_L, T0, gamma, n0).si
+           
     #####################################################
     
     
-    def getTempEverywhere(self, y, x, t, tprior, Tempprior, xprior, massDensity):
-        if self.PreBigBang < y:
-            return 1E-8
+#     def getTempEverywhere(self, y, x, t, tprior, Tempprior, xprior, massDensity):
+#         if self.PreBigBang < y:
+#             return 1E-8
 
-        if (self.PreBigBang - y) * (self.PostBigBang - y) <= 0:
-            dtemp = (2 / 3 * x * (mn - mp - me - m_neutrino) / cc.k_B).si.value
-            return dtemp
+#         if (self.PreBigBang - y) * (self.PostBigBang - y) <= 0:
+#             dtemp = (2 / 3 * x * (mn - mp - me - m_neutrino) / cc.k_B).si.value
+#             return dtemp
 
-        if self.PostBigBang > y:
-            return Tempprior * (tprior / t) ** (3 * (self.getgamma(massDensity) - 1))
+#         if self.PostBigBang > y:
+#             return Tempprior * (tprior / t) ** (3 * (self.getgamma(massDensity) - 1))
         
     def getTemperature(self):
-        tprior = 0
-        xprior = 0
-        Tempprior = 1E-4
-        for i, row in self.df.iterrows():
+        self.df = self.df.sort_values(by="y", ascending = False)
+        self.df = self.df.reset_index(drop=True)
+        xprior = self.df.ProtonFraction.iloc[0]
+        yprior = self.df.y.iloc[0]
+        Temp_prior = self.df.Temperature.iloc[0]=1E-4 
+        gamma_prior = self.df.gammaFromPressureY.iloc[0]
+        Temp=0.0
+        for i, row in list(self.df.iterrows())[1:]:
             y = row["y"]
-            massDensity = row["Density"]
-            if (self.PreBigBang - y) * (self.PostBigBang - y) <= 0:
-                a = 1
-
-            Temp = self.getTempEverywhere(row["y"], row["Proton_Fraction"], row["t"], tprior, Tempprior, xprior,
-                                          massDensity)
+            dx = row["ProtonFraction"]-xprior
+            if dx <0:
+                dx = 0.0
+            if xprior<0.98:
+                Temp = Temp_prior*(y/yprior)**(4/5*gamma_prior-1) +  dx*( y*(MN-MP-ME)*2/3/cc.k_B ).to(uu.K).value
+                yprior = y
+                Temp_prior = Temp
+            else:
+                Temp = Temp_prior*(y/yprior)**(4/5*gamma_prior-1) +  dx*( y*(MN-MP-ME)*2/3/cc.k_B ).to(uu.K).value
             row["Temperature"] = Temp
-            tprior = row["t"]
-            Tempprior = Temp
-            xprior = row["Proton_Fraction"]
-        return self.df.Temperature.iloc[self.TransparenceIndex], self.df.Temperature.iloc[-1]
+            xprior = row["ProtonFraction"]
+            gamma_prior=row["gammaFromPressureY"]
+            self.df.loc[self.df.y == y, "Temperature"]= Temp
+        return self.df
 
-    def find_k0(self, x0):
-        def errf(x):
-            self.k0 = x
-            newTransparencyTemp, newtemp = self.getTemperature()
-            # return  (self.TransparenceTemperature - newTransparencyTemp)**2 + 100*(2.725-newtemp)**2
-            return (self.TransparenceTemperature - newTransparencyTemp) ** 2
+#     def find_k0(self, x0):
+#         def errf(x):
+#             self.k0 = x
+#             newTransparencyTemp, newtemp = self.getTemperature()
+#             # return  (self.TransparenceTemperature - newTransparencyTemp)**2 + 100*(2.725-newtemp)**2
+#             return (self.TransparenceTemperature - newTransparencyTemp) ** 2
 
-        results = scipy.optimize.minimize(errf, x0, method="Nelder-Mead", options={'xatol': 1e-8, 'disp': True})
-        self.k0 = results.x
-        return self.k0, results, self.df.Temperature.iloc[-1:]
+#         results = scipy.optimize.minimize(errf, x0, method="Nelder-Mead", options={'xatol': 1e-8, 'disp': True})
+#         self.k0 = results.x
+#         return self.k0, results, self.df.Temperature.iloc[-1:]
 
-    def getgamma(self, massDensity):
-        massDensity_limit = self.k0[0]  # 10 kg/m3
-        a = massDensity_limit / massDensity
-        if massDensity < massDensity_limit:
-            return 4 / 3
-        else:
-            return (4 / 3) ** (self.k0[1] * a ** self.k0[2])
+#     def getgamma(self, massDensity):
+#         massDensity_limit = self.k0[0]  # 10 kg/m3
+#         a = massDensity_limit / massDensity
+#         if massDensity < massDensity_limit:
+#             return 4 / 3
+#         else:
+#             return (4 / 3) ** (self.k0[1] * a ** self.k0[2])
 
 
 
-    #####################################################
+#     #####################################################
     
 
 
@@ -249,11 +309,11 @@ class Universe():
 
 def KE(y, x, eta, alpha, alpha_L, eta_L, T0, gamma, n0):
     EKy =  3/5*2**(2/3)*(x**(5/3) + (-x + 1)**(5/3))*T0*y**(2/3) + (2*(alpha - 2*alpha_L)*(x - 1)*x - alpha_L)*T0*y - (2*(eta - 2*eta_L)*(x - 1)*x - eta_L)*T0*y**gamma
-    return EKy.to("MeV").value
+    return EKy #.to("MeV").value
 
 def Pressure(y, x, eta, alpha, alpha_L, eta_L, T0, gamma, n0):
     P =  -1/5*(5*(2*(eta - 2*eta_L)*(x - 1)*x - eta_L)*T0*gamma*y**(gamma - 1)/n0 - 2*2**(2/3)*(x**(5/3) + (-x + 1)**(5/3))*T0/(n0*y**(1/3)) - 5*(2*(alpha - 2*alpha_L)*(x - 1)*x - alpha_L)*T0/n0)*n0**2*y**2
-    return P.si
+    return P #.si
 
 def dKEx(y, x, eta, alpha, alpha_L, eta_L, T0, gamma, n0):
     # equilibrium equation is d(EK)/dx)= - y*n0*mu
@@ -261,48 +321,75 @@ def dKEx(y, x, eta, alpha, alpha_L, eta_L, T0, gamma, n0):
     return dEKy_x
 
 
-def findprotonfraction(eta, alpha, alpha_L, eta_L, T0, gamma, n0):
+
+
+# def mu(x,y):
+#     return (cc.hbar * cc.c * (3 * np.pi ** 2 * (1- x)* y * n0) ** (1 / 3)).to("MeV")
+
+# def findy(y, xx, eta, alpha, alpha_L, eta_L, T0, gamma, n0):
+#     # equilibrium equation is d(EK)/dx + mu - (MN-MP)
+#     val = (dKEx(y, xx, eta, alpha, alpha_L, eta_L, T0, gamma, n0) + mu (xx,y) - (MN-MP)).to("MeV")
+#     return val
+
+def findprotonfraction(xx, eta, alpha, alpha_L, eta_L, T0, gamma, n0):
+    # This calculated y values for protonfraction inputs - x is the protonfraction array [0,1]
+    def mu(x,y):
+        return (cc.hbar * cc.c * (3 * np.pi ** 2 * x * y * n0) ** (1 / 3)).to("MeV")
+    
+    def findy_err(y, x, eta, alpha, alpha_L, eta_L, T0, gamma, n0):
+        # equilibrium equation is d(EK)/dx + mu - (MN-MP)
+        val = (dKEx(y, x, eta, alpha, alpha_L, eta_L, T0, gamma, n0) + mu (x,y) - (MN-MP)).to("MeV").value
+        # print( y, val)
+        return val
     df = {}
     y0 = 1.0
-    for x in np.geomspace(1, 1E-3, 100):
+    
+    for x in xx:
         try:
             # I am solving for y (density) and not x the protonfraction
             # root = scipy.optimize.root(findy, y0, args=(x, eta, alpha, alpha_L, eta_L, T0, gamma, n0))
             root = scipy.optimize.brentq(findy_err, 0, 1, args=(x, eta, alpha, alpha_L, eta_L, T0, gamma, n0))
-            df[x] = root
-            y0 = root
+            df[root] = x
         except Exception:
-            print("failed at {}".format(x))
-            df[x] = 0.0
-    protonfraction = pd.DataFrame.from_dict(df, orient="index")
-    protonfraction["x"] = protonfraction.index
-    protonfraction.columns = ["y", "x"]
-    protonfraction.index = protonfraction.y
-    return protonfraction
+            pass
+#             print("failed  ", x)
+    df = pd.DataFrame.from_dict(df, orient="index")
+    df.columns=['ProtonFraction']
+    df["y"]=df.index
+    return df
+# protonfraction = np.logspace(0,-3,300) #np.logspace(0,-7,1000) # np.geomspace(1, 1E-5, 1000)
+# xout = findprotonfraction(protonfraction, eta, alpha, alpha_L, eta_L, T0, gamma, n0)
+# xout.plot(x="y", y="ProtonFraction", logx=True)
 
-def mu(x,y):
-    return (cc.hbar * cc.c * (3 * np.pi ** 2 * (1- x)* y * n0) ** (1 / 3)).to("MeV")
 
-def findy(y, xx, eta, alpha, alpha_L, eta_L, T0, gamma, n0):
-    # equilibrium equation is d(EK)/dx + mu - (MN-MP)
-    val = (dKEx(y, xx, eta, alpha, alpha_L, eta_L, T0, gamma, n0) + mu (xx,y) - (MN-MP)).to("MeV")
-    return val
 
-def findy_err(y, x, eta, alpha, alpha_L, eta_L, T0, gamma, n0):
-    # equilibrium equation is d(EK)/dx + mu - (MN-MP)
-    val = (dKEx(y, x, eta, alpha, alpha_L, eta_L, T0, gamma, n0) + mu (x,y) - (MN-MP)).to("MeV").value
-    # print( y, val)
-    return val
 
-def findprotonfraction_y(x, y0, eta, alpha, alpha_L, eta_L, T0, gamma, n0):
-    try:
-        args = (x, eta, alpha, alpha_L, eta_L, T0, gamma, n0)
-        bounds = [(0,1.0)]
-        root = scipy.optimize.brentq(findy_err, 0,1, args=(x, eta, alpha, alpha_L, eta_L, T0, gamma, n0))
-        # root = minimize(findy_err, y0, args=args,method='L-BFGS-B', options={'maxiter': 50000}, bounds=bounds)
-        return root
-    except Exception:
-        print("failed at {}".format(x))
+def findprotonfraction_y(yy, eta, alpha, alpha_L, eta_L, T0, gamma, n0):
+    # This calculated protonfraction values for densities y inputs - yy is the density array [0,8]
+    def mu(x,y):
+        return (cc.hbar * cc.c * (3 * np.pi ** 2 * (1- x)* y * n0) ** (1 / 3)).to("MeV")
+    
+    def findy_err(x,y, eta, alpha, alpha_L, eta_L, T0, gamma, n0):
+        # equilibrium equation is d(EK)/dx + mu - (MN-MP)
+        val = (dKEx(y, x, eta, alpha, alpha_L, eta_L, T0, gamma, n0) + mu (x,y) - (MN-MP)).to("MeV").value
+        # print( x, val)
+        return val
+
+    df = {}
+    for y in yy:
+        try:
+            # I am solving for y (density) and not x the protonfraction
+            root = scipy.optimize.brentq(findy_err, 0, 1, args=(y, eta, alpha, alpha_L, eta_L, T0, gamma, n0))
+            df[y]=root
+            x0 = root
+        except Exception:
+            pass
+    df = pd.DataFrame.from_dict(df, orient="index")
+    df.columns=['ProtonFraction']
+    df["y"]=df.index
+    return df
+# xout = findprotonfraction_y(np.geomspace(1E-9,1e-2,1000), eta, alpha, alpha_L, eta_L, T0, gamma, n0)
+# xout.plot(x="y", y="ProtonFraction", logx=True)
     
 
 
@@ -437,18 +524,18 @@ def findVSoundCurveParameters(yy):
 
 
 
-def whatTimeRadius(y):
-    dilution = float(y / 8)
-    radius = dbh_radius / dilution ** (1 / 3)
-    t = ((radius - dbh_radius) / cc.c).si.value
-    return t, y, radius.to("lyr").value
+# def whatTimeRadius(y):
+#     dilution = float( y / dbh_y )
+#     radius = dbh_radius.to("lyr") / dilution ** (1 / 3)
+#     t = (radius - dbh_radius) / cc.c
+#     return t, y, radius.to("lyr")
 
 
-def whatIsY(t):
-    radius = (t * cc.c + dbh_radius).to("lyr")
-    dilution = (dbh_radius / radius) ** 3
-    y = dbh_y * dilution
-    return t.to(uu.s).value, y.si, radius.value
+# def whatIsY(t):
+#     radius = (t * cc.c + dbh_radius).to("lyr")
+#     dilution = float(  (dbh_radius / radius) ** 3  )
+#     y = dbh_y * dilution
+#     return t.to(uu.s).value, y.si, radius
 
 
 def densityU(t, u):
@@ -476,5 +563,16 @@ def whatIsTemp(energy):
     return (2 / 3 * energy / kb).si
 
 
+
+def whatIsTime(y):
+    dilution = float( y / dbh_y )
+    radius = dbh_radius.to("lyr") / dilution ** (1 / 3)
+    t = (radius - dbh_radius) / cc.c
+    return t.si.value
+
+def whatIsRadius(y):
+    dilution = float( y / dbh_y )
+    radius = dbh_radius.to("lyr") / dilution ** (1 / 3)
+    return radius.to("lyr").value
 
 
