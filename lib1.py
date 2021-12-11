@@ -81,9 +81,12 @@ class Universe():
         a=  xout.y.max() - xout.y.min()
 
         self.densityPreBigBang = xout.y.max()
-        self.densityPostBigBang = 2.76752797e-08  # xout.y.min()  This is the optmized boundary for the Big Bang
+        self.densityPostBigBang = xout.y.min()  # This is the optimized boundary for the Big Bang
         self.densityToday = today_y
 
+        self.timePreBigBang = whatIsTime(self.densityPreBigBang)
+        self.timePostBigBang = whatIsTime(self.densityPostBigBang)
+        
         yy0 = np.linspace(self.densityBlackholium, self.densityPreBigBang, 100)
         yy = np.unique(np.concatenate([yy0, xout.y]))
         xin = pd.DataFrame(index=yy, columns=["y", "ProtonFraction"], dtype=np.float).fillna(0.0)
@@ -163,13 +166,13 @@ class Universe():
                         self.densityAtFreezing,
                         self.densityPreBigBang, self.densityPostBigBang, self.densityAtTransparency, self.densityToday]
         self.y_Seq = self.y_Seq.fillna(0.0)
-
-        self.getTemperature()
-        self.df["TemperatureDensity"]= self.df.y*self.df.Temperature
         self.updateY_Seq()
-        self.createReport(cosmologicalangle=2, filename="./ObservableUniverse.xls")
-        self.createReport(cosmologicalangle=2*np.pi, filename="./HypersphericalUniverse.xls")
-#         self.find_k0()
+        k0, t_today, t_transparency = self.find_k0()
+        print(t_today, t_transparency)
+        self.df["TemperatureDensity"] = self.df.Density * self.df.Temperature
+        
+
+
 
 
     def vs(self, y, x):
@@ -185,63 +188,56 @@ class Universe():
         self.y_Seq = pd.read_pickle("./y_Seq.pkl")
         self.x_Seq = pd.read_pickle("./x_Seq.pkl")
 
-    def createReport(self, cosmologicalangle=2, filename="./x_Seq.xls"):
-
-        volume = volumeCalc(4, cosmologicalangle, self.y_Seq.loc["densityPreBigBang", "radius"] * uu.lyr).to('m**3')
-        if cosmologicalangle == 2:
-            whichUniverse = "Observable "
-        else:
-            whichUniverse = "Hyperspherical "
-
+    def createReport(self,  filename="./x_Seq.xls"):
         # Unit cell volume with deBroglieLambda side
+        rho = self.rho
+        UniverseMass = self.UniverseMass
+        ratioHu = self.vol_ratio
+        VolumeObservable = self.VolumeObservable
+        VolumeHU = ratioHu * VolumeObservable
+        UniverseMassHU = UniverseMass * ratioHu
+        BlackholiumRadius = self.y_Seq.loc["densityBlackholium", "radius"]
+        NumberOfNeutrons = self.numberOfNeutronsObs
+        NumberOfNeutronsHU = ratioHu * NumberOfNeutrons
+        Energy = self.Energy
+        EnergyHU =Energy * ratioHu
+        NumberOfSupernovae = self.numberOfSupernovae
+        NumberOfSupernovaeHU = self.numberOfSupernovaeHU
+        BigBangVolume = self.y_Seq.loc["densityPreBigBang", "Observable Volume (cubic-light-years)"]*uu.lyr**3
+        SupernovaDensity = self.supernovadensity
+
         cell = (deBroglieLambda) ** 3
-        # Number of Neutrons  = 2.5e+79
-        CurrentVolume = volumeCalc(4, cosmologicalangle, self.y_Seq.loc["densityToday", "radius"] * uu.lyr).to('m**3')
-        MassOfUniverse = (CurrentVolume * rho).si
-        NumberOfNeutrons = (MassOfUniverse / cc.m_n).si
-        print(CurrentVolume, rho, MassOfUniverse)
-        # Energy available
-        energyPerNeutron = 0.78254809 * uu.MeV
-        Energy = NumberOfNeutrons * energyPerNeutron  # EnergyPerNeutron # 4.5E78MeV = 7.2E65 Joules
-        EnergyPerSupernova = 1E51 * uu.erg
-        velocityAvg = np.sqrt(2 * Energy.to(uu.joule) / MassOfUniverse)  # 0.04081379 c
-        BigBangVolume = volume
-        BigBangEnergy = Energy.to('erg')
-        NumberOfSupernovae = (BigBangEnergy / EnergyPerSupernova).si
+        ls = uu.lyr/(365.25*24*3600)
+        A = ["rho", "rho_atms", "VolumeHU", "VolumeObservable", "UniverseMassHU", "UniverseMass", "Energy", "EnergyHU"]
+        B = [self.rho, self.rho_atms, self.VolumeHU, self.VolumeObservable, self.UniverseMassHU, self.UniverseMass,
+             self.Energy, self.EnergyHU]
+        for key, value in zip(A, B):
+            print(key, " = ", value)
 
-        ls = uu.lyr / 365.25 / 24 / 3600
-        #         print("Optimized K0 = ", self.k0)
-        print(
-            "\n",
-            "Initial 4D Radius of the Universe = ", (self.y_Seq.loc["densityBlackholium", "radius"] * uu.lyr).to(ls),
-            "\n\n"
-        )
-        print("\n",
-              "Initial Volume of the {}Universe".format(whichUniverse), volume, "\n",
-              "Number of Neutrons", NumberOfNeutrons, "\n",
-              "MassOfUniverse for {} radians =".format(cosmologicalangle), MassOfUniverse, "\n",
-              "BigBangEnergy = ", BigBangEnergy, "\n",
-              "BigBangEnergyDensity = ", (BigBangEnergy / volume).to("J/m3"), "\n",
-              "EnergyPerSupernova = ", EnergyPerSupernova, "\n",
-              "Number of Supernovae = ", NumberOfSupernovae, "\n",
-              "Cell Length = ", deBroglieLambda, "\n",
-              "Current Density = ", rho, "\n",
-              )
-        self.x_Seq = self.y_Seq.copy()
-        self.x_Seq.columns = ["n/n0", "$MeV/fm^3$", "$N/m^2$", "Time (s)", "Radius (lyr)", "Density ($Kg/m^3)$", "Temperature K"]
+        print("\n", 
+                "EnergyPerSupernova = 1E51 ergs",  "\n", 
+                "Initial 4D Radius of the Universe (light-seconds) = ", (BlackholiumRadius * uu.lyr).to(ls), "\n", 
+                "Cell Length (m) = ", deBroglieLambda, "\n", 
+                "Current Density ($kg/m^3$) = ", rho,  "\n", 
+                "Current Density ($1/m^3$) = ", self.rho_atms, "\n", 
+                "BigBangEnergyDensity ( = ", (Energy / VolumeObservable).to("J/m3"), "\n",
+                "Supernnova Dennsity (supernova per cubic metter =", SupernovaDensity, "\n\n" )
 
-        self.x_Seq["Density (1/fm3)"] = self.x_Seq["n/n0"] * n0
-        self.x_Seq["Time (year)"] = self.x_Seq["Time (s)"] / 365.25 / 24 / 3600
-        self.x_Seq["Radius (light-seconds)"] = self.x_Seq["Radius (lyr)"] * (365.25 * 24 * 3600)
+        print("\n", 
+                "Observable Universe", "\n",
+                "Initial Volume of the Observable Universe = {}".format(VolumeObservable), "\n",
+                "MassOfUniverse for 2 radians =".format(UniverseMass), "\n",
+                "Number of Neutrons", NumberOfNeutrons, "\n",
+                "BigBangEnergy = ", Energy, "\n",
+                "BigBangEnergyDensity = ",self.supernovadensity, "\n",
+                "Number of Supernovae = ", NumberOfSupernovae, "\n",
 
-        for index, row in self.y_Seq.iterrows():
-            radius = (row["radius"] * uu.lyr).value
-            self.x_Seq.loc[index, "Volume (lyr3)"] = volumeCalc(4, cosmologicalangle, radius)
-
-        pd.set_option('display.float_format', lambda x: '%.3e' % x)
-        self.x_Seq.index = [x.replace("density", "").replace("At", "") for x in self.x_Seq.index]
-        print(self.x_Seq)
-
+                "Hyperspherical Universe",
+                "Initial Volume of the HU Universe".format(VolumeHU), "\n",
+                "MassOfUniverse for 2 $\pi$ radians =".format(UniverseMassHU), "\n",
+                "Number of Neutrons HU", NumberOfNeutronsHU, "\n",
+                "BigBangEnergy HU = ", EnergyHU, "\n",
+                "Number of Supernovae = ", NumberOfSupernovaeHU)
         self.x_Seq.to_excel(filename)
 
     def getEnergyPressure(self):
@@ -299,22 +295,63 @@ class Universe():
         return (self.t_today - t_today) ** 2 * 1E8 + (self.t_transparency - t_transparency) ** 2
 
     
-    def updateY_Seq(self):
+    def updateY_Seq(self, cosmologicalangle=2):
+        r = self.y_Seq.loc["densityToday", "Radius (lyr)"] = self.df.loc[self.densityToday, "r"]
+        r_bigbang =  self.df.loc[self.densityPostBigBang, "r"]*uu.lyr
+        volume_bigbang = 4/3 * np.pi * r_bigbang**3
+        self.vol_ratio = ( volumeCalc(4, 2*np.pi, r)/(4/3*np.pi*r**3))
+        energyPerNeutron = 0.78254809 * uu.MeV
+        energyPerSupernova = 1E51 * uu.erg
         for name, yk in zip(self.y_Seq.index, self.y_Seq.y):
-            self.y_Seq.loc[name, "Energy"] = self.df.loc[yk, "Energy"]
-            self.y_Seq.loc[name, "Pressure"] = self.df.loc[yk, "Pressure"]
-            self.y_Seq.loc[name, "t"] = self.df.loc[yk, "t"]
-            self.y_Seq.loc[name, "radius"] = self.df.loc[yk, "r"]
-            self.y_Seq.loc[name, "Density"] = self.df.loc[yk, "Density"]
-            self.y_Seq.loc[name, "Temperature"] = self.df.loc[yk, "Temperature"]
-        print(self.y_Seq)
+            E = self.y_Seq.loc[name, "Energy"] = self.df.loc[yk, "Energy"]
+            P = self.y_Seq.loc[name, "Pressure"] = self.df.loc[yk, "Pressure"]
+            t = self.y_Seq.loc[name, "t"] = self.df.loc[yk, "t"]
+            y = self.y_Seq.loc[name, "y"] = self.df.loc[yk, "y"]
+            r =self.y_Seq.loc[name, "radius"] = self.df.loc[yk, "r"]
 
-    
+            # print(r)
+            #  Printable parameters
+            self.y_Seq.loc[name, "Density"] = self.df.loc[yk, "Density"]
+            self.y_Seq.loc[name, "n/n0"] = y
+            self.y_Seq.loc[name, "$MeV/fm^3$"] = E
+            self.y_Seq.loc[name, "$N/m^2$" ] = P
+            self.y_Seq.loc[name, "Time (s)"] = t
+            self.y_Seq.loc[name, "Radius (lyr)"] = self.df.loc[yk, "r"] = r
+            self.y_Seq.loc[name, "Density ($Kg/m^3)$"] = (y*n0*cc.m_n).to (uu.kg/uu.m**3).value
+            self.y_Seq.loc[name, "NeutronDensity ($1/m^3)$"] = (y * n0 ).to(1/ uu.m ** 3).value
+            self.y_Seq.loc[name, "Temperature"] = self.y_Seq.loc[name, "Temperature K"] = self.df.loc[yk, "Temperature"]
+            self.y_Seq.loc[name, "Density (1/fm3)"] =  self.df.loc[yk, "y"] * n0.to(d_units).value
+            self.y_Seq.loc[name, "Time (year)"] = self.y_Seq.loc[name, "Time (s)"] / 365.25 / 24 / 3600
+            self.y_Seq.loc[name, "Radius (light-seconds)"] = r * (365.25 * 24 * 3600)
+            self.y_Seq.loc[name, "Observable Volume (cubic-light-years)"] = (4/3*np.pi*r**3)
+            self.y_Seq.loc[name, "HU Volume (cubic-light-years)"] = volumeCalc(4, 2*np.pi, r)
+
+        x_Seq_columns = ["n/n0", "$MeV/fm^3$", "$N/m^2$", "Time (s)", "Radius (lyr)", "Density ($Kg/m^3)$",
+                         "NeutronDensity ($1/m^3)$", "Temperature K"]
+        self.x_Seq = self.y_Seq[x_Seq_columns]
+        self.rho = self.y_Seq.loc["densityToday",  "Density"]*uu.kg/uu.m**3
+        self. rho_atms = rho/cc.m_n
+        self.VolumeHU = self.y_Seq.loc["densityToday",  "HU Volume (cubic-light-years)"]*uu.lyr**3
+        self.VolumeObservable = self.y_Seq.loc["densityToday", "Observable Volume (cubic-light-years)"]*uu.lyr**3
+        self.UniverseMassHU = ( self.VolumeHU * self.rho).si
+        self.UniverseMass = (self.VolumeObservable * self.rho).si
+        self.numberOfNeutronsObs = (self.UniverseMass /cc.m_n).si
+        self.Energy = (self.numberOfNeutronsObs  * energyPerNeutron).si
+        self.EnergyHU = (self.Energy*self.vol_ratio).si
+        
+        self.numberOfSupernovae = (self.Energy /energyPerSupernova).si
+        self.numberOfSupernovaeHU = self.vol_ratio * self.numberOfSupernovae
+        self.supernovadensity = self.numberOfSupernovae /volume_bigbang
+        a=1
+
+
     def find_k0(self):
         x0 = [1.28753349e+00, 1.333, 2.68717333e-08]
         results = scipy.optimize.minimize(self.getTemperature, x0, method="Nelder-Mead",
                                           options={'xatol': 1e-8, 'disp': True})
         self.k0 = results.x
+        self.getTemperature(self.k0)
+        self.updateY_Seq()
         t_today = self.df[self.df.y == self.densityToday].Temperature
         t_transparency = self.df[self.df.y == self.densityAtTransparency].Temperature
         return self.k0, t_today, t_transparency
@@ -344,14 +381,6 @@ def dKEx(y, x, eta, alpha, alpha_L, eta_L, T0, gamma, n0):
                          (eta - 2 * eta_L) * (x - 1) + (eta - 2 * eta_L) * x) * T0 * y ** gamma
     return dEKy_x
 
-
-# def mu(x,y):
-#     return (cc.hbar * cc.c * (3 * np.pi ** 2 * (1- x)* y * n0) ** (1 / 3)).to("MeV")
-
-# def findy(y, xx, eta, alpha, alpha_L, eta_L, T0, gamma, n0):
-#     # equilibrium equation is d(EK)/dx + mu - (MN-MP)
-#     val = (dKEx(y, xx, eta, alpha, alpha_L, eta_L, T0, gamma, n0) + mu (xx,y) - (MN-MP)).to("MeV")
-#     return val
 
 def findprotonfraction(xx, eta, alpha, alpha_L, eta_L, T0, gamma, n0):
     # This calculated y values for protonfraction inputs - x is the protonfraction array [0,1]
@@ -548,19 +577,6 @@ def findVSoundCurveParameters(yy):
 
     return df1, results.x
 
-
-# def whatTimeRadius(y):
-#     dilution = float( y / dbh_y )
-#     radius = dbh_radius.to("lyr") / dilution ** (1 / 3)
-#     t = (radius - dbh_radius) / cc.c
-#     return t, y, radius.to("lyr")
-
-
-# def whatIsY(t):
-#     radius = (t * cc.c + dbh_radius).to("lyr")
-#     dilution = float(  (dbh_radius / radius) ** 3  )
-#     y = dbh_y * dilution
-#     return t.to(uu.s).value, y.si, radius
 
 
 def densityU(t, u):
