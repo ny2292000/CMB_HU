@@ -256,6 +256,7 @@ class Universe():
                 "Number of Neutrons HU =", NumberOfNeutronsHU, "\n",
                 "BigBangEnergy HU = ", EnergyHU.to(uu.J).value,"=J", "\n",
                 "Number of Supernovae HU = ", NumberOfSupernovaeHU)
+        self.x_Seq.index = [x.replace("density", "").replace("At", "") for x in self.x_Seq.index]
         self.x_Seq.to_excel(filename)
 
     def getEnergyPressure(self):
