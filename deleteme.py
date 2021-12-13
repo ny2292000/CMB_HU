@@ -33,6 +33,9 @@ print(alpha, eta, gamma,eta_L,alpha_L, T0.value, n0.value, MN.value, MP.value, M
 
 myU=Universe(eta, alpha, alpha_L, eta_L, T0, gamma, n0,vssquaredpd)
 
+
+myU.createReport(filename="./AllUniverse.xls")
+
 print(myU.y_Seq)
 
 print(myU.x_Seq)

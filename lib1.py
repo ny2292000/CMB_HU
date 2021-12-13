@@ -190,21 +190,34 @@ class Universe():
 
     def createReport(self,  filename="./x_Seq.xls"):
         # Unit cell volume with deBroglieLambda side
-        rho = self.rho
-        UniverseMass = self.UniverseMass
-        ratioHu = self.vol_ratio
-        VolumeObservable = self.VolumeObservable
-        VolumeHU = ratioHu * VolumeObservable
-        UniverseMassHU = UniverseMass * ratioHu
-        BlackholiumRadius = self.y_Seq.loc["densityBlackholium", "radius"]
-        NumberOfNeutrons = self.numberOfNeutronsObs
-        NumberOfNeutronsHU = ratioHu * NumberOfNeutrons
-        Energy = self.Energy
-        EnergyHU =Energy * ratioHu
-        NumberOfSupernovae = self.numberOfSupernovae
-        NumberOfSupernovaeHU = self.numberOfSupernovaeHU
+        BlackholiumRadius = self.y_Seq.loc["densityBlackholium", "radius"]*uu.lyr
         BigBangVolume = self.y_Seq.loc["densityPreBigBang", "Observable Volume (cubic-light-years)"]*uu.lyr**3
-        SupernovaDensity = self.supernovadensity
+        
+        EnergyPerSupernova = 1E51*uu.erg
+        energyPerNeutron = 0.78254809 * uu.MeV
+        rho =  self.rho = self.y_Seq.loc["densityToday",  "Density"]*uu.kg/uu.m**3
+        self. rho_atms = rho/cc.m_n
+        VolumeHU = self.VolumeHU = self.y_Seq.loc["densityToday",  "HU Volume (cubic-light-years)"]*uu.lyr**3
+        
+        VolumeObservable = self.VolumeObservable = \
+            self.y_Seq.loc["densityToday", "Observable Volume (cubic-light-years)"]*uu.lyr**3
+            
+        ratioHu = self.vol_ratio = (self.VolumeHU/self.VolumeObservable).si
+        UniverseMassHU = self.UniverseMassHU = ( self.VolumeHU * self.rho).si
+        UniverseMass = self.UniverseMass = (self.VolumeObservable * self.rho).si
+        NumberOfNeutrons = self.numberOfNeutronsObs = (self.UniverseMass /cc.m_n).si
+        NumberOfNeutronsHU = ratioHu * NumberOfNeutrons
+        Energy = self.Energy = (self.numberOfNeutronsObs  * energyPerNeutron).si
+        EnergyHU = self.EnergyHU = (self.Energy*self.vol_ratio).si
+        
+        NumberOfSupernovae =  self.numberOfSupernovae = (self.Energy /EnergyPerSupernova).si
+        NumberOfSupernovaeHU = self.numberOfSupernovaeHU = self.vol_ratio * self.numberOfSupernovae
+        SupernovaDensity =  self.supernovadensity = (self.numberOfSupernovae /BigBangVolume).to(1/uu.lyr**3)
+        self.supernovaenergydensity = (self.Energy /BigBangVolume).to(uu.J/uu.lyr**3)
+        
+        BlackholiumRadius = self.y_Seq.loc["densityBlackholium", "radius"]
+        BigBangVolume = self.y_Seq.loc["densityPreBigBang", "Observable Volume (cubic-light-years)"]*uu.lyr**3
+        
 
         cell = (deBroglieLambda) ** 3
         ls = uu.lyr/(365.25*24*3600)
@@ -212,32 +225,37 @@ class Universe():
         B = [self.rho, self.rho_atms, self.VolumeHU, self.VolumeObservable, self.UniverseMassHU, self.UniverseMass,
              self.Energy, self.EnergyHU]
         for key, value in zip(A, B):
-            print(key, " = ", value)
+            print(key, " = ", value.value, "=", value.unit)
 
         print("\n", 
-                "EnergyPerSupernova = 1E51 ergs",  "\n", 
-                "Initial 4D Radius of the Universe (light-seconds) = ", (BlackholiumRadius * uu.lyr).to(ls), "\n", 
-                "Cell Length (m) = ", deBroglieLambda, "\n", 
-                "Current Density ($kg/m^3$) = ", rho,  "\n", 
-                "Current Density ($1/m^3$) = ", self.rho_atms, "\n", 
-                "BigBangEnergyDensity ( = ", (Energy / VolumeObservable).to("J/m3"), "\n",
-                "Supernnova Dennsity (supernova per cubic metter =", SupernovaDensity, "\n\n" )
+                "Plasma Gamma =", self.gamma0, "\n",
+                "Hydrogen Gamma =", self.gamma1, "\n",
+                "Adiabatic Boundary =", self.boundaryadiabatic.value, "=", self.boundaryadiabatic.unit, "\n",
+                "Adiabatic Boundary_y =", self.boundaryadiabatic_y,  "\n",
+                "Adiabatic Boundary_t =", self.boundaryadiabatic_t, "= seconds", "\n",
+                "EnergyPerSupernova = 1E51 =ergs",  "\n",
+                "Initial 4D Radius of the Universe (light-seconds) = ", (BlackholiumRadius * uu.lyr).to(ls).value,"=ls", "\n", 
+                "Cell Length (m) = ", deBroglieLambda.value,"=m", "\n", 
+                "Current Density ($kg/m^3$) = ", rho.value, "=", rho.unit,  "\n",
+                "Current Density ($1/m^3$) = ", self.rho_atms.si.value,"=1/m3", "\n", 
+                "BigBangEnergyDensity ( = ", (Energy / VolumeObservable).to("J/m3").value, "=J/m3", "\n",
+                "Supernova Density (supernova per cubic lyr) =", SupernovaDensity.to(1/uu.lyr**3).value,"=1/lyr3", "\n\n" )
 
         print("\n", 
                 "Observable Universe", "\n",
-                "Initial Volume of the Observable Universe = {}".format(VolumeObservable), "\n",
-                "MassOfUniverse for 2 radians =".format(UniverseMass), "\n",
-                "Number of Neutrons", NumberOfNeutrons, "\n",
-                "BigBangEnergy = ", Energy, "\n",
-                "BigBangEnergyDensity = ",self.supernovadensity, "\n",
+                "Initial Volume Observable Universe = ", VolumeObservable.to(uu.lyr**3).value, "=lyr**3", "\n",
+                "MassOfUniverse for 2 radians =", UniverseMass.to(uu.kg).value,"=kg", "\n",
+                "Number of Neutrons =", NumberOfNeutrons, "\n",
+                "BigBangEnergy = ", Energy.to(uu.J).value,"=J", "\n",
+                "BigBangEnergyDensity = ",(EnergyPerSupernova*self.supernovadensity).to(uu.J/uu.lyr**3).value, "=J/lyr3", "\n",
                 "Number of Supernovae = ", NumberOfSupernovae, "\n",
 
-                "Hyperspherical Universe",
-                "Initial Volume of the HU Universe".format(VolumeHU), "\n",
-                "MassOfUniverse for 2 $\pi$ radians =".format(UniverseMassHU), "\n",
-                "Number of Neutrons HU", NumberOfNeutronsHU, "\n",
-                "BigBangEnergy HU = ", EnergyHU, "\n",
-                "Number of Supernovae = ", NumberOfSupernovaeHU)
+                "Hyperspherical Universe", "\n",
+                "Initial Volume HU = ", VolumeHU.to(uu.lyr**3).value,"=lyr3","\n",
+                "MassOfUniverse HU =", UniverseMassHU.to(uu.kg).value,"=kg" "\n",
+                "Number of Neutrons HU =", NumberOfNeutronsHU, "\n",
+                "BigBangEnergy HU = ", EnergyHU.to(uu.J).value,"=J", "\n",
+                "Number of Supernovae HU = ", NumberOfSupernovaeHU)
         self.x_Seq.to_excel(filename)
 
     def getEnergyPressure(self):
@@ -252,9 +270,9 @@ class Universe():
     def getTemperature(self, x0=[1.28753349e+00, 1.333, 2.68717333e-08]):
         gcoef = x0[0]
         gammaT = x0[1]
-        yboundary = x0[2] 
+        yboundary = x0[2]
         if yboundary > self.densityPreBigBang:
-            yboundary= self.densityPreBigBang 
+            yboundary= self.densityPreBigBang
         xprior = self.df.ProtonFraction.iloc[0]
         yprior = self.df.y.iloc[0]
         Temp_prior = self.df.Temperature.iloc[0] = 1E-4
@@ -278,14 +296,14 @@ class Universe():
                 dx = row["ProtonFraction"] - xprior
                 sumofdx +=dx
                 dt =dx * ((MN - MP - ME) * 2 / 3 / cc.k_B).to(uu.K).value
-                Temp = Temp_prior*(y/yprior)**(gamma_prior - 1) + dt 
+                Temp = Temp_prior*(y/yprior)**(gamma_prior - 1) + dt
                 xprior = row["ProtonFraction"]
                 yprior = y
 
 
             if y < yboundary:
     #             Tmax =((MN - MP - ME) * 2 / 3 / cc.k_B).to(uu.K).value
-                Temp = Temp_prior*(y/yprior)**(gamma_prior - 1) 
+                Temp = Temp_prior*(y/yprior)**(gamma_prior - 1)
             Temp_prior =Temp
             yprior = y
             self.df.loc[y,"Temperature"] = Temp
@@ -327,26 +345,15 @@ class Universe():
             self.y_Seq.loc[name, "HU Volume (cubic-light-years)"] = volumeCalc(4, 2*np.pi, r)
 
         x_Seq_columns = ["n/n0", "$MeV/fm^3$", "$N/m^2$", "Time (s)", "Radius (lyr)", "Density ($Kg/m^3)$",
-                         "NeutronDensity ($1/m^3)$", "Temperature K"]
-        self.x_Seq = self.y_Seq[x_Seq_columns]
-        self.rho = self.y_Seq.loc["densityToday",  "Density"]*uu.kg/uu.m**3
-        self. rho_atms = rho/cc.m_n
-        self.VolumeHU = self.y_Seq.loc["densityToday",  "HU Volume (cubic-light-years)"]*uu.lyr**3
-        self.VolumeObservable = self.y_Seq.loc["densityToday", "Observable Volume (cubic-light-years)"]*uu.lyr**3
-        self.UniverseMassHU = ( self.VolumeHU * self.rho).si
-        self.UniverseMass = (self.VolumeObservable * self.rho).si
-        self.numberOfNeutronsObs = (self.UniverseMass /cc.m_n).si
-        self.Energy = (self.numberOfNeutronsObs  * energyPerNeutron).si
-        self.EnergyHU = (self.Energy*self.vol_ratio).si
+                          "Temperature K","Time (year)","Radius (light-seconds)",
+                         "Observable Volume (cubic-light-years)",'HU Volume (cubic-light-years)', "NeutronDensity ($1/m^3)$"]
+ 
         
-        self.numberOfSupernovae = (self.Energy /energyPerSupernova).si
-        self.numberOfSupernovaeHU = self.vol_ratio * self.numberOfSupernovae
-        self.supernovadensity = self.numberOfSupernovae /volume_bigbang
+        self.x_Seq = self.y_Seq[x_Seq_columns]
         a=1
 
 
-    def find_k0(self):
-        x0 = [1.28753349e+00, 1.333, 2.68717333e-08]
+    def find_k0(self, x0 = [1.28753349e+00, 1.333, 2.68717333e-08]):
         results = scipy.optimize.minimize(self.getTemperature, x0, method="Nelder-Mead",
                                           options={'xatol': 1e-8, 'disp': True})
         self.k0 = results.x
@@ -354,6 +361,11 @@ class Universe():
         self.updateY_Seq()
         t_today = self.df[self.df.y == self.densityToday].Temperature
         t_transparency = self.df[self.df.y == self.densityAtTransparency].Temperature
+        self.gamma0 = self.k0[0]
+        self.gamma1 = self.k0[1]
+        self.boundaryadiabatic = (self.k0[2]*n0*cc.m_n).to(uu.kg/uu.m**3)
+        self.boundaryadiabatic_y = self.k0[2]
+        self.boundaryadiabatic_t = whatIsTime(self.k0[2])
         return self.k0, t_today, t_transparency
 
 
