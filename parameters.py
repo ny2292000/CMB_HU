@@ -10,7 +10,7 @@ import math
 from mpl_toolkits import mplot3d
 from scipy.stats import norm
 
-thishome = "/Users/marcopereira/Documents/GitHub/CMB_HU/DataSupernovaLBLgov/"
+thishome = "./DataSupernovaLBLgov/"
 planck_IQU_SMICA = hp.fitsfunc.read_map(thishome + "COM_CMB_IQU-smica_1024_R2.02_full.fits", dtype=float)
 (mu_smica, sigma_smica) = norm.fit(planck_IQU_SMICA)
 planck_theory_cl = np.loadtxt(thishome +
