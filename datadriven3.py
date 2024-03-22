@@ -115,7 +115,7 @@ if __name__ == "__main__":
     beam_arc_min =10
     diffmap = np.load("./img1/diffmap.npy")
     f = "COM_CMB_IQU-smica_1024_R2.02_full.fits"
-    planck_IQU_SMICA = hp.fitsfunc.read_map(thishome + f, dtype=np.float)
+    planck_IQU_SMICA = hp.fitsfunc.read_map(thishome + f, dtype=float)
     nside=1024
     mu_smica, sigma_smica = norm.fit(planck_IQU_SMICA)
     white_noise = np.ma.asarray(np.random.normal(0, sigma_smica, 12 * nside ** 2))
@@ -173,7 +173,7 @@ if __name__ == "__main__":
     # mygauss.func = mygauss.sins_quared
     # nn = len(dll_SMICA_Clean_NoNoise)
     # mygauss.smica = dll_SMICA_Clean_NoNoise[initpoint::]
-    # mygauss.t = ell[initpoint:nn].astype(np.float)
+    # mygauss.t = ell[initpoint:nn].astype(float)
     # np.save("./correctedSMica.npy", mygauss.smica)
     # np.save("./ell.npy", mygauss.t)
     # xout, err = mygauss.optimizeme(x0)
@@ -181,7 +181,7 @@ if __name__ == "__main__":
     # mygauss.plotme(xout)
     # initpoint=1
     # mygauss.smica = dll_SMICA_Clean_NoNoise[initpoint::]
-    # mygauss.t = ell[initpoint:len(mygauss.smica)+initpoint].astype(np.float)
+    # mygauss.t = ell[initpoint:len(mygauss.smica)+initpoint].astype(float)
     # # mygauss.plotme(xout, 5e-9)
     # x0 = np.array([4.607637045207382e-09, 43.12499999999282, -0.26441579664751114, 72.0360578427234 ])
     # mygauss.plotme(x0, 5e-9)
@@ -190,7 +190,7 @@ if __name__ == "__main__":
     # initpoint=1
     # x0 = np.array([4.607637045207382e-09, 43.12499999999282, -0.26441579664751114, 72.0360578427234 ])
     # mygauss.smica = dll_SMICA_Clean_NoNoise[initpoint::]
-    # mygauss.t = ell[initpoint:len(mygauss.smica)+initpoint].astype(np.float)
+    # mygauss.t = ell[initpoint:len(mygauss.smica)+initpoint].astype(float)
     # mygauss.plotme(x0, 5e-9)
     #####################################################################################
     #####################################################################################

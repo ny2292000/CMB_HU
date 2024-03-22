@@ -10,9 +10,9 @@ if __name__=="__main__":
     # 32-bit floats
     m=10000
     a = cu.random.rand(m,m)
-    a = a.astype(np.float32)
+    a = a.astype(float32)
     b = cu.random.rand(m,1)
-    b = b.astype(np.float32)
+    b = b.astype(float32)
     t1 = datetime.now()
     for i in np.arange(1,100000):
         b= a.dot(b)

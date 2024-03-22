@@ -173,11 +173,11 @@ def zDistance(Z):
 
 
 def rDistance(Z):
-    a = 13.58
+    a = 14.04
     rDist=[]
     for x in Z:
-        rDist.append(a / (1 - 4 / np.pi * zDistance(x)) ** 1.5 - a)
-    # [a / (1 - 4 / np.pi * zDistance(x)) ** 1.5 - a for x in Z]
+        rDist.append(a / (1 - 4 / np.pi * zDistance(x)) ** 1.66 - a)
+    # [a / (1 - 4 / np.pi * zDistance(x)) ** 1.66 - a for x in Z]
     return rDist
 
 

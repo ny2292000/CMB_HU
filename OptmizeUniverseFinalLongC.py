@@ -275,7 +275,7 @@ class HYPER:
         a = (-1) ** m * np.sqrt((2 * l + 1) / (2 * np.pi) * mp.factorial(l - m) / mp.factorial(l + m))
         b = (-1) ** k * np.sqrt(
             2 * (k + 1) / np.pi * mp.factorial(k - l) / mp.factorial(k + l + 1) * 2 ** (2 * l) * mp.factorial(l) ** 2)
-        c = np.float64(a * b)
+        c = float64(a * b)
         return c
 
     def normalizeFColors(self, fcolors, sigma_smica):
@@ -663,7 +663,7 @@ class HYPER:
             a = self.sinksi ** l * self.G.loc[(1 + l, k - l), :].values
             a1 = (-1) ** k * np.sqrt(2 * (k + 1) / np.pi * mp.factorial(k - l)
                                      * 2 ** (2 * l) * mp.factorial(l) ** 2 / mp.factorial(k + l + 1))
-            a1 = np.float(a1)
+            a1 = float(a1)
             mlist = sorted(list(set(int(np.round(kk, 0)) for kk in np.linspace(-l, l, len(llist)))))
             b = np.zeros(self.xx.shape)
             for m in mlist:
@@ -716,7 +716,7 @@ class HYPER:
                 a = self.sinksi ** l * self.G.loc[(1 + l, k - l), :].values
                 a1 = (-1) ** k * np.sqrt(2 * (k + 1) / np.pi * mp.factorial(k - l)
                                          * 2 ** (2 * l) * mp.factorial(l) ** 2 / mp.factorial(k + l + 1))
-                a1 = np.float(a1)
+                a1 = float(a1)
                 mlist = sorted(list(set(int(np.round(kk, 0)) for kk in np.linspace(-l, l, nnn))))
                 for m in mlist:
                     b = a * a1 * self.spherharmm(l, m, self.phi, pp[:, l, np.abs(m)])

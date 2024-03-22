@@ -257,7 +257,7 @@ class HYPER:
         a = (-1) ** m * np.sqrt((2 * l + 1) / (2 * np.pi) * mp.factorial(l - m) / mp.factorial(l + m))
         b = (-1) ** k * np.sqrt(
             2 * (k + 1) / np.pi * mp.factorial(k - l) / mp.factorial(k + l + 1) * 2 ** (2 * l) * mp.factorial(l) ** 2)
-        c = np.float64(a * b)
+        c = float64(a * b)
         return c
 
     def normalizeFColors(self, fcolors, sigma_smica):
@@ -608,8 +608,8 @@ class HYPER:
     def project4D3d(self, karray):
         self.kmax = np.max(karray)
         self.calc_hyperharmnano2(karray)
-        # SMICA = self.SMICA_LR.astype(np.float32)
-        # self.df = self.df.astype(np.float32)
+        # SMICA = self.SMICA_LR.astype(float32)
+        # self.df = self.df.astype(float32)
         C = np.dot(self.df[:, 4:], self.SMICA_LR)
         B = np.dot(self.df[:, 4:], self.df[:, 4:].T)
         results = np.linalg.solve(B, C)
@@ -656,7 +656,7 @@ class HYPER:
                                          * 2**(2 * l) * mp.factorial(l) ** 2 / mp.factorial(k + l + 1))
                 if a0!=a1:
                     print(k,l,m)
-                a1 = np.float(a1)
+                a1 = float(a1)
                 mlist = sorted(list(set(int(np.round(kk,0)) for kk in np.linspace(-l, l, nnn))))
                 for m in mlist:
                     b = a * a1 * self.spherharmm(l, m, self.phi, pp[:,l,np.abs(m)])
@@ -679,8 +679,8 @@ class HYPER:
 
     def spherharmm(self, l, m, phi, pp):
         mm = np.abs(m)
-        # a = np.float64((-1) ** mm * np.sqrt((2 * l + 1) * mp.fac(l - mm) / mp.fac(l + mm)))
-        a = np.float64(np.sqrt((2 * l + 1) * mp.fac(l - mm) / mp.fac(l + mm)))
+        # a = float64((-1) ** mm * np.sqrt((2 * l + 1) * mp.fac(l - mm) / mp.fac(l + mm)))
+        a = float64(np.sqrt((2 * l + 1) * mp.fac(l - mm) / mp.fac(l + mm)))
         if m > 0:
             return a * pp* np.cos(mm * phi)
         if m == 0:

@@ -54,14 +54,14 @@ class HYPER:
         title = "SMICA_nside3D={}".format(nside3D)
         self.SMICA_LR = self.change_resolution(self.SMICA, sigma, nside3D=nside3D,
                                                title=title, filename=filename, plotme=True, save=True).astype(
-            np.float32)
+            float32)
 
     def factorMP(self, k, l, m):
         m = np.abs(m)
         a = (-1) ** m * np.sqrt((2 * l + 1) / (2 * np.pi) * mp.factorial(l - m) / mp.factorial(l + m))
         b = (-1) ** k * np.sqrt(
             2 * (k + 1) / np.pi * mp.factorial(k - l) / mp.factorial(k + l + 1) * 2 ** (2 * l) * mp.factorial(l) ** 2)
-        c = np.float64(a * b)
+        c = float64(a * b)
         return c
 
     def normalizeFColors(self, fcolors, sigma_smica):
@@ -278,13 +278,13 @@ class HYPER:
         title = "kmax={}_nside3D={}={}_SMICA".format(kmax, nside3D)
         self.SMICA_LR = self.change_resolution(self.SMICA, sigma_smica, nside=nside3D,
                                                lmax=nside3D, title=title, filename=filename, plotme=True).astype(
-            np.float32)
+            float32)
         results, fcolors, ls, err = self.project4D3d(k1, k2, x0[0], x0[1], x0[2], plotme=True)
         self.plotHistogram(fcolors, nside3D, kmax)
         self.plot_ONLY_CL_From_Image(fcolors.squeeze(), xmax=10 * k2)
         newSMICA = self.SMICA - fcolors
         self.SMICA_LR = self.change_resolution(newSMICA, 1, nside=nside3D, max=nside3D,
-                                               title=title, filename=filename, plotme=True).astype(np.float32)
+                                               title=title, filename=filename, plotme=True).astype(float32)
         return results.x
 
     def calcStuff(self, alpha):
@@ -319,7 +319,7 @@ class HYPER:
                 for m in np.arange(-l, l + 1):
                     self.my_klm_dict[(k, l, m)] = idd
                     idd += 1
-        self.df = np.zeros([idd, len(self.xx), ], dtype=np.float32)
+        self.df = np.zeros([idd, len(self.xx), ], dtype=float32)
 
     def searchPlot(self, lambda_k, lambda_l, lambda_m, k1, kmax, plotme=False, save=False):
         ind = []

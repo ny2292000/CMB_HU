@@ -65,7 +65,7 @@ if __name__ == "__main__":
     diffmap = np.load("./img1/diffmap.npy")
     mygauss = fitClass()
     for f in smicafiles:
-        planck_IQU_SMICA = hp.fitsfunc.read_map(thishome + f, dtype=np.float)
+        planck_IQU_SMICA = hp.fitsfunc.read_map(thishome + f, dtype=float)
         if "1024" in f:
             nside=1024
         if "2048" in f:

@@ -89,7 +89,7 @@ class Universe():
         
         yy0 = np.linspace(self.densityBlackholium, self.densityPreBigBang, 100)
         yy = np.unique(np.concatenate([yy0, xout.y]))
-        xin = pd.DataFrame(index=yy, columns=["y", "ProtonFraction"], dtype=np.float).fillna(0.0)
+        xin = pd.DataFrame(index=yy, columns=["y", "ProtonFraction"], dtype=float).fillna(0.0)
         xin.y = xin.index
         xin.loc[yy0[0:-1], "ProtonFraction"] = 0.0
         xin.loc[xout.y, "ProtonFraction"] = xout.ProtonFraction
@@ -110,11 +110,11 @@ class Universe():
 
         # VS and ProtonFraction
         df = pd.DataFrame(columns=["t", "y", "r", "Vs", "ProtonFraction", "Energy", "Temperature", "Pressure"],
-                          dtype=np.float64)
+                          dtype=float64)
         df.ProtonFraction = xin.ProtonFraction
         df.y = xin.y
         dff = pd.DataFrame(columns=["t", "y", "r", "Vs", "ProtonFraction", "Energy", "Temperature", "Pressure"],
-                           dtype=np.float64)
+                           dtype=float64)
         dff.y = np.concatenate([np.geomspace(self.densityPostBigBang, self.densityAtTransparency, 300),
                                 np.geomspace(densityAtTransparency, today_y, 300),
                                 [self.densityBlackholium, self.densityNeutronium, self.densityAtPreFreezing,
@@ -160,7 +160,7 @@ class Universe():
                "densityAtTransparency", "densityToday"]
         self.y_Seq = pd.DataFrame(data=np.zeros([8, 7]), index=ind,
                                   columns=["y", "Energy", "Pressure", "t", "radius", "Density", "Temperature"],
-                                  dtype=np.float64)
+                                  dtype=float64)
 
         self.y_Seq.y = [self.densityBlackholium, self.densityNeutronium, self.densityAtPreFreezing,
                         self.densityAtFreezing,

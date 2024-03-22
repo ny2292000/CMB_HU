@@ -77,7 +77,7 @@ if __name__=="__main__":
     # ell = np.load("./ell.npy")
     nside = 1024
     f = "COM_CMB_IQU-smica_1024_R2.02_full.fits"
-    SMICA = hp.fitsfunc.read_map(thishome + f, dtype=np.float)
+    SMICA = hp.fitsfunc.read_map(thishome + f, dtype=float)
     cl_SMICA, dl_SMICA, ell = get_dl(SMICA, nside=nside, beam_arc_min=10)
     mu_smica, sigma_smica = norm.fit(planck_IQU_SMICA)
     white_noise = np.ma.asarray(np.random.normal(0, sigma_smica, 12 * nside ** 2))

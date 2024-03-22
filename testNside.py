@@ -6,9 +6,9 @@ from parameters import *
 pl = hp.sphtfunc.pixwin(1024)
 
 white_noise = np.ma.asarray(np.random.normal(0, 0.0001, 12 * 1024 ** 2))
-planck_IQU_SMICA = hp.fitsfunc.read_map("./Data SupernovaLBLgov/COM_CMB_IQU-smica_1024_R2.02_full.fits", dtype=np.float)
+planck_IQU_SMICA = hp.fitsfunc.read_map("./Data SupernovaLBLgov/COM_CMB_IQU-smica_1024_R2.02_full.fits", dtype=float)
 planck_theory_cl = np.loadtxt(
-    "./Data SupernovaLBLgov/COM_PowerSpect_CMB-base-plikHM-TTTEEE-lowl-lowE-lensing-minimum-theory_R3.01.txt", dtype=np.float)
+    "./Data SupernovaLBLgov/COM_PowerSpect_CMB-base-plikHM-TTTEEE-lowl-lowE-lensing-minimum-theory_R3.01.txt", dtype=float)
 cl_SMICA = hp.anafast(planck_IQU_SMICA, lmax=1024)
 ell = np.arange(len(cl_SMICA))
 
