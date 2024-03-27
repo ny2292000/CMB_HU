@@ -10,7 +10,7 @@ from scipy.optimize import curve_fit
 import timeit
 import seaborn as sns
 import random
-from glue.app.qt.application import GlueApplication as qglue
+# from glue.app.qt.application import GlueApplication as qglue
 import math
 import parameters
 import time

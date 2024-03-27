@@ -245,7 +245,7 @@ def functionG(a):
     k = a[0][1] + l
     cosksi = a[1]
     A = np.array([eval_gegenbauer(1 + l, k - l, x) for x in cosksi])
-    print(a[0], "done")
+    # print(a[0], "done")
     return a[0], A
 
 
@@ -269,7 +269,7 @@ class HYPER:
         self.k1 = min(karray)
         self.kmax = max(karray)
         self.karray = karray
-        self.mypath = "/mnt/hd_1/GitHub/CMB_HU/PG_data"
+        self.mypath = "./PG_data"
         self.G_filename = os.path.join(self.mypath, "G_{}_{}_{}_{}.npy".format(self.nside3D,
                                                                                   chg2ang(lambda_k),
                                                                                   chg2ang(lambda_l),
@@ -557,7 +557,7 @@ class HYPER:
         extraG = pd.DataFrame(data=np.zeros([len(multiindex), len(columns)]), index=multiindex, columns=columns)
         for key in self.extra_G_keys():
             a, extraG.loc[key, :] = functionG((key, self.cosksi))
-            print(a, "transferred")
+            # print(a, "transferred")
         return extraG
 
     def change_HSH_center(self, lk, ll, lm, karray, nside, doit=False, loadpriorG=False, savePG=False):
