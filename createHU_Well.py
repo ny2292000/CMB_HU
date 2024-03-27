@@ -17,7 +17,7 @@ if __name__ == "__main__":
     for i, (myp, f) in enumerate(mylist):
         if f.startswith("aitoff"):
             a=f.replace(".png","").split("_")[3:]
-            df[i]=[np.float(a[x]) for x in [0,2,3,4]]
+            df[i]=[float(a[x]) for x in [0,2,3,4]]
     dff = pd.DataFrame.from_dict(df, orient="index")
     dff.to_pickle("./PG_data/globeOptimization")
     dff.to_csv("./PG_data/globeOptimization.csv")

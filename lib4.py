@@ -3,11 +3,10 @@ import os
 import warnings
 from os import listdir
 from os.path import isfile, join
-import numpy as np
-from enum import Enum
 
 import matplotlib.pylab as plt
 from PIL import Image
+from numba import prange
 from pyshtools.legendre import legendre
 from scipy.optimize import minimize
 from scipy.special import eval_gegenbauer
@@ -18,10 +17,8 @@ from parameters import *
 warnings.filterwarnings("ignore")
 import mpmath as mp
 from enum import Enum
-from time import sleep
-from scipy.optimize import curve_fit
 from astropy.convolution import convolve, Gaussian1DKernel
-from scipy.special import sici, sinc
+from scipy.special import sici
 
 
 def get_dl(fcolors, nside, beam_arc_min=5):
@@ -45,16 +42,31 @@ class fitClass:
         'function of two overlapping peaks'
         p = np.zeros([1, len(ell)])
         # gamma = parkguess[-1:][0]
-        for i in np.arange(0, self.n * 3, 3):
+        for i in np.arange(0, self.n * 4, 4):
             a0 = parkguess[i + 0]  # peak height
             a1 = parkguess[i + 1]  # Gaussian Center
             a2 = parkguess[i + 2]  # std of gaussian
-            # gamma = parkguess[i + 3]  # std of gaussian
-            p += self.fitfun(ell, a0, a1, a2)
+            gamma = parkguess[i + 3]  # std of gaussian
+            p += self.fitfun(ell, a0, a1, a2, gamma)
         return p[0]
 
-    def fitfun(self, x, a0, a1, a2):
-        return a0 * norm.pdf(x, loc=a1, scale=a2)
+    def seven_peaks(self, x, *parkguess):
+        'function of two overlapping peaks'
+        p = np.zeros([1, len(x)])
+        a0 = parkguess[0]  # first peak height
+        a1 = parkguess[1]  # Gaussian Center
+        a2 = parkguess[2]  # std of gaussian
+        deltaL = parkguess[3] # shift in L
+        gamma = parkguess[4]  # exponential rate of peak decay
+        baseline = parkguess[5]
+        for i in np.arange(self.n):
+            p +=  a0 * norm.pdf(x, loc=a1+ deltaL*i, scale=a2) 
+        return p[0] * np.exp(-gamma * x) + baseline
+    
+    
+    
+    def fitfun(self, x, a0, a1, a2, gamma):
+        return a0 * norm.pdf(x, loc=a1, scale=a2) * np.exp(-gamma * x) * np.sqrt(2 * np.pi)
 
     def correctWN(self, x):
         return x[0] * np.exp(x[1] * self.t) * self.white_noise
@@ -70,6 +82,12 @@ class fitClass:
     def fitGN(self, x):
         err = np.sum((self.smica - self.func(x)) ** 4 * 1E20)
         return err
+
+    def ffitme(self,x0):
+        a=x0[0]
+        R=x0[1]
+        xx = 2*np.pi*self.t/R
+        return a*(np.sin(xx)-xx*np.cos(xx))/xx**3
 
     def optimizeme(self, x0):
         x00 = minimize(self.fitGN, x0,
@@ -91,6 +109,10 @@ class fitClass:
         plt.xlim([0, None])
         plt.ylim([0, np.max(self.smica)])
         plt.show()
+        
+     
+        
+        
 
 
 params = {'legend.fontsize': 'x-large',
@@ -262,14 +284,8 @@ class HYPER:
         self.kmax = max(karray)
         self.karray = karray
         self.mypath = mypath
-        self.G_filename = os.path.join(self.mypath, "G_{}_{}_{}_{}.npy".format(self.nside3D,
-                                                                               chg2ang(lambda_k),
-                                                                               chg2ang(lambda_l),
-                                                                               chg2ang(lambda_m)))
-        self.P_filename = os.path.join(self.mypath, "P_{}_{}_{}_{}_".format(self.nside3D,
-                                                                            chg2ang(lambda_k),
-                                                                            chg2ang(lambda_l),
-                                                                            chg2ang(lambda_m)))
+        self.G_filename = os.path.join(self.mypath, "G_{}_{}_{}_{}.npy".format(self.nside3D, chg2ang(lambda_k), chg2ang(lambda_l), chg2ang(lambda_m)))
+        self.P_filename = os.path.join(self.mypath, "P_{}_{}_{}_{}_".format(self.nside3D, chg2ang(lambda_k), chg2ang(lambda_l),chg2ang(lambda_m)))
         # self.G_filename = "./PG_data/G_64_492_495_709.npy"
         if loadpriorG:
             if os.path.exists(self.G_filename):
@@ -304,7 +320,7 @@ class HYPER:
         a = (-1) ** m * np.sqrt((2 * l + 1) / (2 * np.pi) * mp.factorial(l - m) / mp.factorial(l + m))
         b = (-1) ** k * np.sqrt(
             2 * (k + 1) / np.pi * mp.factorial(k - l) / mp.factorial(k + l + 1) * 2 ** (2 * l) * mp.factorial(l) ** 2)
-        c = np.float64(a * b)
+        c = float64(a * b)
         return c
 
     def normalizeFColors(self, fcolors, sigma_smica):
@@ -335,7 +351,7 @@ class HYPER:
         images[0].save(fname, save_all=True, append_images=images[1:], optimize=False, duration=1000, loop=0)
     
 
-    def creategiffMem(self, x):
+    def creategiffMem(self, x, kmax):
         # err, prime, results, fig
         images = [y[3] for y in x]
         titles = [y[1] for y in x]
@@ -358,7 +374,7 @@ class HYPER:
         if sigma != 0.0:
             fcolors = (fcolors - mu) / sigma * self.sigma_smica
         fcolors = np.expand_dims(fcolors, axis=1)
-        self.plot_aitoff(fcolors.squeeze(), kk=0, ll=0, mm=0, err=0, filename=filename, title=title, save=save,
+        self.plot_aitoff(fcolors.squeeze(), kk=0, ll=0, mm=0, err=0, filename=filename, title=title, save=save,kmax=bandwidth,
                          plotme=plotme)
         return fcolors
 
@@ -375,7 +391,7 @@ class HYPER:
         if plotme:
             plt.show()
 
-    def plot_aitoff(self, fcolors, kk, ll, mm, err, filename=None, title=None, plotme=False, save=False, nosigma=True):
+    def plot_aitoff(self, fcolors, kk, ll, mm, err,kmax, filename=None, title=None, plotme=False, save=False, nosigma=True):
         # noinspection PyUnresolvedReferences
         plt.clf()
         if title is None:
@@ -397,44 +413,55 @@ class HYPER:
         f.clear()
         plt.close(f)
 
-    def plot_Single_CL_From_Image(self, fcolors, nside, ymin=1E-6, ymax=1, xmax=300, log=False):
+    def plot_Single_CL_From_Image(self, fcolors, nside, ymin=1E-6, ymax=1, xmax=300, log=False):      
         cl_SMICA, dl_SMICA, ell = self.get_dl(fcolors, nside)
-        dl_SMICA = dl_SMICA / np.max(dl_SMICA)
+        ymin=np.min(dl_SMICA[0:xmax])
+        ymax=np.max(dl_SMICA[0:xmax])
+        dl_SMICA = dl_SMICA / ymax
         fig = plt.figure(figsize=[12, 12])
         ax = fig.add_subplot(111)
-        ax.plot(ell, dl_SMICA)
-        ax.set_xlabel("$ell(ell+1)C_ell/2\pi \, \,(\mu K^2)$")
-        ax.set_ylabel('$\ell$')
+        plt.plot(ell, dl_SMICA)
+        ax = plt.gca()
+        ax.set_ylabel("$\ell(\ell+1)C_\ell/2\pi \, \,(\mu K^2)$")
+        ax.set_xlabel('$\ell$')
+        ax.set_title("Angular Power Spectra")
+        if log:
+            ax.set_yscale("log")
+        ax.set_xlim(left=1,right=xmax)
+        ax.set_ylim(bottom=ymin,top=1)
+        plt.show()
+        return cl_SMICA, dl_SMICA, ell
+
+    def plot_CL_From_Image(self, fcolors, nside, planck_theory_cl, xmax=300, xlim=2048, ymax=1.0, log=False):
+        cl_SMICA, dl_SMICA, ell = self.get_dl(fcolors, nside)
+        ymin=np.min(dl_SMICA[0:xmax])
+        ymax=np.max(dl_SMICA[0:xmax])
+        dl_SMICA = dl_SMICA / ymax
+        planck_theory_cl[:, 1] = planck_theory_cl[:, 1] / np.max(planck_theory_cl[10:xlim, 1])
+
+        x01 = np.array([2.14718116e-04, 9.58157432e-01])
+        a=planck_theory_cl[:, 1]
+        b= dl_SMICA[2:len(planck_theory_cl)+2]
+        x00 = minimize(newerr, x01, args=( a, b),
+                   method='nelder-mead', options={'xatol': 1e-8, 'disp': True})
+        err = x00.fun
+        xx0 = x00.x
+        dl_SMICA1 = xx0[1]*dl_SMICA + xx0[0]
+        fig = plt.figure(figsize=[12, 12])
+        ax = fig.add_subplot(111)
+        ax.plot(ell, dl_SMICA1, color="green", label="Observation")
+        ax.plot(planck_theory_cl[:, 0], planck_theory_cl[:, 1], color="red", label="Theory")
+        ax.set_ylabel("$\ell(\ell+1)C_\ell/2\pi \, \,(\mu K^2)$")
+        ax.set_xlabel('$\ell$')
         ax.set_title("Angular Power Spectra")
         ax.legend(loc="upper right")
         if log:
             ax.set_yscale("log")
-        ax.set_xlim(1, xmax)
-        ax.set_ylim(ymin, ymax)
+        ax.set_xlim(10, xlim)
+        ax.set_ylim(1E-4, 1.2)
         ax.grid()
         plt.show()
-        return cl_SMICA, dl_SMICA, ell
-
-    def plot_CL_From_Image(self, fcolors, nside, planck_theory_cl, xmax=3000, ymax=1.0):
-        cl_SMICA, dl_SMICA, ell = self.get_dl(fcolors, nside)
-        dl_SMICA = dl_SMICA / np.max(dl_SMICA)
-        planck_theory_cl[:, 1] = planck_theory_cl[:, 1] / np.max(planck_theory_cl[10:3000, 1])
-        fig = plt.figure(figsize=[12, 12])
-        ax = fig.add_subplot(111)
-        ax.plot(planck_theory_cl[:, 0], planck_theory_cl[:, 1])
-        ax1 = plt.twinx(ax)
-        ax1.plot(ell, dl_SMICA)
-        ax.set_xlabel("$ell(ell+1)C_ell/2\pi \, \,(\mu K^2)$")
-        ax.set_ylabel('$\ell$')
-        ax.set_title("Angular Power Spectra")
-        ax.legend(loc="upper right")
-        # ax1.set_yscale("log")
-        ax.set_xlim(10, xmax)
-        ax1.set_xlim(10, xmax)
-        # ax1.set_ylim(1E-4, ymax)
-        ax1.grid()
-        plt.show()
-        return cl_SMICA, dl_SMICA, ell
+        return cl_SMICA, dl_SMICA, ell, xx0
 
     def get_dl(self, fcolors, nside):
         cl_SMICA = hp.anafast(fcolors)
@@ -445,7 +472,7 @@ class HYPER:
         dl_SMICA = (ell * (ell + 1) * dl_SMICA / (2 * math.pi))
         return cl_SMICA, dl_SMICA, ell
 
-    def plot_ONLY_CL_From_Image(self, fcolors, nside, smica, nsidesmica, xmax=30):
+    def plot_ONLY_CL_From_Image(self, fcolors, nside, smica, nsidesmica, kmax, xmax=30):
         cl_SMICA, dl_SMICA_HU, ell = self.get_dl(fcolors.squeeze(), nside=nside)
         cl_SMICA, dl_SMICA, ell1 = self.get_dl(smica.squeeze(), nside=nsidesmica)
         dl_SMICA_HU /= np.max(dl_SMICA_HU[0:len(ell) // 2])
@@ -464,7 +491,7 @@ class HYPER:
         ax1.set_xlim(1, xmax)
         plt.ylim(1E-10, 1)
         ax1.grid()
-        plt.savefig("./img1/AngularPowerSpectra_{}_{}.png".format(kmax, nside3D), dpi=300)
+        plt.savefig("./img1/AngularPowerSpectra_{}_{}.png".format(kmax, self.nside3D), dpi=300)
         plt.show()
         return dl_SMICA, dl_SMICA_HU, ell
 
@@ -477,6 +504,7 @@ class HYPER:
 
     def plotNewMap(self, newmap, err, filename=None, title=None, plotme=False, save=False, nosigma=True):
         err0 = np.round(err, 3)
+        
         if filename is None:
             filename = "./img1/aitoff_{}_{}_{}__{}_{}_{}.png".format(self.kmax, self.nside3D, err0,
                                                                      chg2ang(self.lambda_k),
@@ -487,7 +515,7 @@ class HYPER:
                                                 chg2ang(self.lambda_l),
                                                 chg2ang(self.lambda_m))
         self.plot_aitoff(newmap, self.lambda_k, self.lambda_l,
-                         self.lambda_m, err0, title=title, filename=filename, plotme=plotme, save=save, nosigma=nosigma)
+                         self.lambda_m, self.kmax, err0, title=title, filename=filename, plotme=plotme, save=save, nosigma=nosigma)
 
     def calcStuff(self, alpha):
         err = 0.0
@@ -702,7 +730,7 @@ class HYPER:
             a = self.sinksi ** l * self.G.loc[(1 + l, k - l), :].values
             a1 = (-1) ** k * np.sqrt(2 * (k + 1) / np.pi * mp.factorial(k - l)
                                      * 2 ** (2 * l) * mp.factorial(l) ** 2 / mp.factorial(k + l + 1))
-            a1 = np.float(a1)
+            a1 = float(a1)
             mlist = sorted(list(set(int(np.round(kk, 0)) for kk in np.linspace(-l, l, len(llist)))))
             b = np.zeros(self.xx.shape)
             for m in mlist:
@@ -755,7 +783,7 @@ class HYPER:
                 a = self.sinksi ** l * self.G.loc[(1 + l, k - l), :].values
                 a1 = (-1) ** k * np.sqrt(2 * (k + 1) / np.pi * mp.factorial(k - l)
                                          * 2 ** (2 * l) * mp.factorial(l) ** 2 / mp.factorial(k + l + 1))
-                a1 = np.float(a1)
+                a1 = float(a1)
                 mlist = sorted(list(set(int(np.round(kk, 0)) for kk in np.linspace(-l, l, nnn))))
                 for m in mlist:
                     b = a * a1 * self.spherharmm(l, m, self.phi, pp[:, l, np.abs(m)])
@@ -845,7 +873,7 @@ class HYPER:
     def matchSMICA(self, a, newmap):
         diffmap_1024 = a * self.SMICA.squeeze() + newmap * (1 - a)
         diffmap_1024 = (diffmap_1024 - np.mean(diffmap_1024)) / np.std(diffmap_1024) * self.sigma_smica
-        myHyper.plotNewMap(diffmap_1024, err=0.0, plotme=True, title=str(a))
+        self.plotNewMap(diffmap_1024, err=0.0, plotme=True, title=str(a))
 
     def recalcXYZ(self, r):
         self.xx, self.yy, self.zz = hp.pix2vec(nside=self.nside3D, ipix=np.arange(hp.nside2npix(self.nside3D)))
@@ -873,6 +901,12 @@ class HYPER:
         self.recalcXYZ(1.0)
         return self.getCMB(results).squeeze()
 
+
+    def getCMB(self, results):
+        self.calc_hyperharmnano2(self.karray)
+        return self.df[:,4:].T.dot(results)
+
+
     def getCMBxyz(self, i, results):
         self.calc_hyperharmnano2(self.karray)
         self.newmap = np.dot(results.T, self.df[:, 4:])
@@ -890,26 +924,32 @@ class HYPER:
         df[:, 5] = self.phi3D
         df[:, 6] = self.newmap
         return df, self.newmap
-
+    
+    
     def getUniverseMap(self, results, rr):
         map3D = np.zeros([0, 7])
         fcolors = {}
-        for i, r in enumerate(rr):
-            self.recalcXYZ(r)
+        for i in prange(len(rr)):
+            self.recalcXYZ(rr[i])
             df, fcolors[i] = self.getCMBxyz(i, results)
             map3D = np.concatenate([map3D, df])
-            print(i, r, map3D.shape)
+            print(i, rr[i], map3D.shape)
         return map3D, fcolors
 
 
 class Color(Enum):
-    MINIMIZEPOSITION = 1
-    FINDNEIGHBORHOOD = 2
+    FINDNEIGHBORHOOD = 1
+    MINIMIZEPOSITION = 2
     EVALUATE_DF_AT_POSITION = 3
-    FINDBESTFORKRANGE = 4
-    OPTIMIZE_SPECTRUM = 5
-    CREATE_GAUSSIAN_BACKGROUND = 6
-    WORK_86_128 = 7
-    OPTIMIZE_SMICA_BACKGROUND = 8
-    CREATEMAPOFUNIVERSE = 9
-    CREATE_VARIABLE_R_GIF = 10
+    CREATE_HIGH_RESOL_BACKGROUNDPLOT = 4
+    CREATE_HISTOGRAM = 5
+    CREATEMAPOFUNIVERSE = 6
+    ################################
+    FINDBESTFORKRANGE = 7
+    OPTIMIZE_SPECTRUM = 8
+    CREATE_GAUSSIAN_BACKGROUND = 9
+    OPTIMIZE_SMICA_BACKGROUND = 10
+    CREATE_VARIABLE_R_GIF = 11
+    WORK_86_128 = 12
+    CHARACTERIZE_SPECTRUM=13
+    

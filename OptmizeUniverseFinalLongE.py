@@ -245,7 +245,7 @@ def functionG(a):
     k = a[0][1] + l
     cosksi = a[1]
     A = np.array([eval_gegenbauer(1 + l, k - l, x) for x in cosksi])
-    print(a[0], "done")
+    # print(a[0], "done")
     return a[0], A
 
 
@@ -269,7 +269,7 @@ class HYPER:
         self.k1 = min(karray)
         self.kmax = max(karray)
         self.karray = karray
-        self.mypath = "/mnt/hd_1/GitHub/CMB_HU/PG_data"
+        self.mypath = "/media/home/mp74207/GitHub/CMB_HU/PG_data"
         self.G_filename = os.path.join(self.mypath, "G_{}_{}_{}_{}.npy".format(self.nside3D,
                                                                                   chg2ang(lambda_k),
                                                                                   chg2ang(lambda_l),
@@ -312,7 +312,7 @@ class HYPER:
         a = (-1) ** m * np.sqrt((2 * l + 1) / (2 * np.pi) * mp.factorial(l - m) / mp.factorial(l + m))
         b = (-1) ** k * np.sqrt(
             2 * (k + 1) / np.pi * mp.factorial(k - l) / mp.factorial(k + l + 1) * 2 ** (2 * l) * mp.factorial(l) ** 2)
-        c = np.float64(a * b)
+        c = float64(a * b)
         return c
 
     def normalizeFColors(self, fcolors, sigma_smica):
@@ -557,7 +557,7 @@ class HYPER:
         extraG = pd.DataFrame(data=np.zeros([len(multiindex), len(columns)]), index=multiindex, columns=columns)
         for key in self.extra_G_keys():
             a, extraG.loc[key, :] = functionG((key, self.cosksi))
-            print(a, "transferred")
+            # print(a, "transferred")
         return extraG
 
     def change_HSH_center(self, lk, ll, lm, karray, nside, doit=False, loadpriorG=False, savePG=False):
@@ -701,7 +701,7 @@ class HYPER:
             a = self.sinksi ** l * self.G.loc[(1 + l, k - l), :].values
             a1 = (-1) ** k * np.sqrt(2 * (k + 1) / np.pi * mp.factorial(k - l)
                                      * 2 ** (2 * l) * mp.factorial(l) ** 2 / mp.factorial(k + l + 1))
-            a1 = np.float(a1)
+            a1 = float(a1)
             mlist = sorted(list(set(int(np.round(kk, 0)) for kk in np.linspace(-l, l, len(llist)))))
             b = np.zeros(self.xx.shape)
             for m in mlist:
@@ -754,7 +754,7 @@ class HYPER:
                 a = self.sinksi ** l * self.G.loc[(1 + l, k - l), :].values
                 a1 = (-1) ** k * np.sqrt(2 * (k + 1) / np.pi * mp.factorial(k - l)
                                          * 2 ** (2 * l) * mp.factorial(l) ** 2 / mp.factorial(k + l + 1))
-                a1 = np.float(a1)
+                a1 = float(a1)
                 mlist = sorted(list(set(int(np.round(kk, 0)) for kk in np.linspace(-l, l, nnn))))
                 for m in mlist:
                     b = a * a1 * self.spherharmm(l, m, self.phi, pp[:, l, np.abs(m)])
