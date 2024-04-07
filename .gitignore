@@ -8,8 +8,8 @@ DataSupernovaLBLgov/COM_CMB_IQU-smica_1024_R2.02_full.fits
 DataSupernovaLBLgov/COM_PowerSpect_CMB-base-plikHM-TTTEEE-lowl-lowE-lensing-minimum-theory_R3.01.txt
 /deleteme
 __pycache__/
-sphericalharmonics/*
-Data SupernovaLBLgov/*
+sphericalharmonics/
+/deleteme/*
 ./venv
 /.idea
 *.py[cod]
@@ -148,11 +148,4 @@ dmypy.json
 .idea/modules.xml
 .idea/other.xml
 .idea/vcs.xml
-/universeorthoview/
 /.ipynb_checkpoints/
-/Data SupernovaLBLgov/
-/Drawing For Publications/
-/img/
-/img1/
-/PG_data/
-/DataSupernovaLBLgov/
