@@ -275,7 +275,7 @@ class HYPER:
         a = (-1) ** m * np.sqrt((2 * l + 1) / (2 * np.pi) * mp.factorial(l - m) / mp.factorial(l + m))
         b = (-1) ** k * np.sqrt(
             2 * (k + 1) / np.pi * mp.factorial(k - l) / mp.factorial(k + l + 1) * 2 ** (2 * l) * mp.factorial(l) ** 2)
-        c = float64(a * b)
+        c = float(a * b)
         return c
 
     def normalizeFColors(self, fcolors, sigma_smica):

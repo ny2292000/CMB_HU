@@ -55,9 +55,9 @@ T0=((3*np.pi**2*n0/2)**(2/3)*cc.hbar**2/(2*cc.m_n)).to("MeV")
 
 # Blackholium stuff
 # This is the Black Hole density where Fundamental Dilators are deBroglieLambda femtometer apart
-# 8 x 1/8 of a FD per cell
+# 8 x 1/8 + 6*1/2+1 of a FD per cell
 # n0_y= (8/deBroglieLambda**3).to(d_units) #  flat hydrogen per uu.fm**3
-dbh=8*m_hydrogen/deBroglieLambda**3
+dbh=5*m_hydrogen/deBroglieLambda**3
 dbhMev_fm3=(dbh*cc.c**2).to(d_Mev_units)
 dbh_y= (dbh/n0/m_hydrogen).si.value
 

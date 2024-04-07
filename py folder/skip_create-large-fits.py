@@ -20,7 +20,7 @@ memory) from scratch using `astropy.io.fits`.
 import os
 import numpy as np
 from astropy.io import fits
-data = np.zeros((40000, 40000), dtype=float64)
+data = np.zeros((40000, 40000), dtype=float)
 hdu = fits.PrimaryHDU(data=data)
 
 ##############################################################################
@@ -51,7 +51,7 @@ hdu.writeto('large.fits')
 # exact size is irrelevant, as long as it has the desired number of
 # dimensions
 
-data = np.zeros((100, 100), dtype=float64)
+data = np.zeros((100, 100), dtype=float)
 hdu = fits.PrimaryHDU(data=data)
 header = hdu.header
 while len(header) < (36 * 4 - 1):

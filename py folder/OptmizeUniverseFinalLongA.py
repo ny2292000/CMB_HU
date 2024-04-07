@@ -257,7 +257,7 @@ class HYPER:
         a = (-1) ** m * np.sqrt((2 * l + 1) / (2 * np.pi) * mp.factorial(l - m) / mp.factorial(l + m))
         b = (-1) ** k * np.sqrt(
             2 * (k + 1) / np.pi * mp.factorial(k - l) / mp.factorial(k + l + 1) * 2 ** (2 * l) * mp.factorial(l) ** 2)
-        c = float64(a * b)
+        c = float(a * b)
         return c
 
     def normalizeFColors(self, fcolors, sigma_smica):
@@ -679,8 +679,8 @@ class HYPER:
 
     def spherharmm(self, l, m, phi, pp):
         mm = np.abs(m)
-        # a = float64((-1) ** mm * np.sqrt((2 * l + 1) * mp.fac(l - mm) / mp.fac(l + mm)))
-        a = float64(np.sqrt((2 * l + 1) * mp.fac(l - mm) / mp.fac(l + mm)))
+        # a = float((-1) ** mm * np.sqrt((2 * l + 1) * mp.fac(l - mm) / mp.fac(l + mm)))
+        a = float(np.sqrt((2 * l + 1) * mp.fac(l - mm) / mp.fac(l + mm)))
         if m > 0:
             return a * pp* np.cos(mm * phi)
         if m == 0:

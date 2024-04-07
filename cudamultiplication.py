@@ -6,8 +6,8 @@ import skcuda.linalg as linalg
 import pycuda.autoinit
 linalg.init()
 
-A = np.array(([1, 2, 3], [4, 5, 6])).astype(float64)
-B = np.array(([7, 8, 1, 5], [9, 10, 0, 9], [11, 12, 5, 5])).astype(float64)
+A = np.array(([1, 2, 3], [4, 5, 6])).astype(float)
+B = np.array(([7, 8, 1, 5], [9, 10, 0, 9], [11, 12, 5, 5])).astype(float)
 
 A_gpu = gpuarray.to_gpu(A)
 B_gpu = gpuarray.to_gpu(B)

@@ -268,7 +268,7 @@ class HYPER:
         self.k1 = min(karray)
         self.kmax = max(karray)
         self.karray = karray
-        self.mypath = "/mnt/hd_1/GitHub/CMB_HU/PG_data"
+        self.mypath = "./PG_data"
         self.G_filename = os.path.join(self.mypath, "G_{}_{}_{}_{}.npy".format(self.nside3D,
                                                                                   chg2ang(lambda_k),
                                                                                   chg2ang(lambda_l),
@@ -311,7 +311,7 @@ class HYPER:
         a = (-1) ** m * np.sqrt((2 * l + 1) / (2 * np.pi) * mp.factorial(l - m) / mp.factorial(l + m))
         b = (-1) ** k * np.sqrt(
             2 * (k + 1) / np.pi * mp.factorial(k - l) / mp.factorial(k + l + 1) * 2 ** (2 * l) * mp.factorial(l) ** 2)
-        c = float64(a * b)
+        c = float(a * b)
         return c
 
     def normalizeFColors(self, fcolors, sigma_smica):

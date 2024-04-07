@@ -1,6 +1,14 @@
 # Created by .ignore support plugin (hsz.mobi)
 ### Python template
 # Byte-compiled / optimized / DLL files
+/.ipynb_checkpoints
+/img/*
+/img1/*
+/PG_data/*
+/MinimizedBest/*
+DataSupernovaLBLgov/COM_CMB_IQU-smica_1024_R2.02_full.fits
+DataSupernovaLBLgov/COM_PowerSpect_CMB-base-plikHM-TTTEEE-lowl-lowE-lensing-minimum-theory_R3.01.txt
+/deleteme
 __pycache__/
 sphericalharmonics/*
 img/*

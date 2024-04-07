@@ -110,11 +110,11 @@ class Universe():
 
         # VS and ProtonFraction
         df = pd.DataFrame(columns=["t", "y", "r", "Vs", "ProtonFraction", "Energy", "Temperature", "Pressure"],
-                          dtype=float64)
+                          dtype=float)
         df.ProtonFraction = xin.ProtonFraction
         df.y = xin.y
         dff = pd.DataFrame(columns=["t", "y", "r", "Vs", "ProtonFraction", "Energy", "Temperature", "Pressure"],
-                           dtype=float64)
+                           dtype=float)
         dff.y = np.concatenate([np.geomspace(self.densityPostBigBang, self.densityAtTransparency, 300),
                                 np.geomspace(densityAtTransparency, today_y, 300),
                                 [self.densityBlackholium, self.densityNeutronium, self.densityAtPreFreezing,
@@ -160,7 +160,7 @@ class Universe():
                "densityAtTransparency", "densityToday"]
         self.y_Seq = pd.DataFrame(data=np.zeros([8, 7]), index=ind,
                                   columns=["y", "Energy", "Pressure", "t", "radius", "Density", "Temperature"],
-                                  dtype=float64)
+                                  dtype=float)
 
         self.y_Seq.y = [self.densityBlackholium, self.densityNeutronium, self.densityAtPreFreezing,
                         self.densityAtFreezing,
@@ -300,7 +300,7 @@ class Universe():
             yboundary= self.densityPreBigBang
         xprior = self.df.ProtonFraction.iloc[0]
         yprior = self.df.y.iloc[0]
-        Temp_prior = self.df.Temperature.iloc[0] = 1E-4
+        Temp_prior = self.df.loc[self.df.index[0], 'Temperature'] = 1E-4
         gamma_prior = self.df.gammaFromPressureY.iloc[0]
         Temp = Temp_prior
         sumofdx=0.0
