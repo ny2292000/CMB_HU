@@ -14,10 +14,9 @@ a_mercury = 57.91e9  # semi-major axis of Mercury's orbit in meters
 # Calculate specific angular momentum for Mercury
 h = np.sqrt(G*M * a_mercury * (1 - e**2))
 
-def r_derivatives(theta, e, GM, x):
+def r_derivatives(theta, h, e, GM, x):
     sigma = x[0]
     k = x[1]
-    h = x[2]
     # Expression for r, r_dot, and r_double_dot
     r = (h ** 2 / GM) / (1 + k * e * np.cos(theta / sigma))
     r_dot = -GM*e*np.sin(theta/sigma)/(h*sigma)
@@ -27,24 +26,23 @@ def r_derivatives(theta, e, GM, x):
 
 def error_function(x):
     def integrand(theta):
-        r, r_dot, r_double_dot = r_derivatives(theta, e, GM, x)
-        h= x[2]
+        r, r_dot, r_double_dot = r_derivatives(theta, h, e, GM, x)
         theta_dot = h / r**2
         v_squared = r_dot**2 + r**2 * theta_dot**2
         c = 299792458
-        c_squared = c**2
-        vc = v_squared/c_squared
-        if(vc>1):
-            print(vc, "FTL")
-        a_theoretical = -GM*(1-v_squared/c**2)**0.5 / r**2 / (1 + 0.5*(r_dot / c)**2)**2
+        vc = v_squared / c**2
+        gamma_v = 1/np.sqrt(1 - vc)
+        v = np.sqrt(v_squared)
+        B =(1 + (gamma_v - 1) * (r_dot / v) ** 2)
+        a_theoretical = -GM /gamma_v/ r ** 2/B
         a_numerical = r_double_dot - r * theta_dot ** 2  # Assuming r_double_dot is defined to calculate \ddot{r}
         return (a_theoretical - a_numerical)**2
-
-    integral_error, _ = quad(integrand, 0, 2 * np.pi)
+    sigma = x[0]
+    integral_error, _ = quad(integrand, 0, 2*np.pi/sigma, epsabs=1e-14, epsrel=1e-14)
     return 100*integral_error
 
 # Initial guess for sigma
-initial_x = [0.9, 1.0,h]
+initial_x = [0.9, 1.0]
 result = minimize(error_function, initial_x, method='Nelder-Mead', tol=1E-14)
 print("Optimized sigma:", result.x)
 
