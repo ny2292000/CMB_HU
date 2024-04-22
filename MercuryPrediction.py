@@ -13,21 +13,25 @@ a_mercury = 57.91e9  # semi-major axis of Mercury's orbit in meters
 
 # Calculate specific angular momentum for Mercury
 h = np.sqrt(G*M * a_mercury * (1 - e**2))
-
 def r_derivatives(theta, h, e, GM, x):
     sigma = x[0]
     k = x[1]
     # Expression for r, r_dot, and r_double_dot
     r = (h ** 2 / GM) / (1 + k * e * np.cos(theta / sigma))
-    r_dot = -GM*e*np.sin(theta/sigma)/(h*sigma)
-    r_double_dot =  GM**3*e*(e*np.cos(theta/sigma) + 1)**2*np.cos(theta/sigma)/(h**4*sigma**2)
-    return r, r_dot, r_double_dot
+    theta_dot = h / r ** 2
+    dr_dt= GM*e*np.sin(theta/sigma)/(h*sigma)
+    dr_dtheta = e*h**2*np.sin(theta/sigma)/(GM*sigma*(e*np.cos(theta/sigma) + 1)**2)
+    d2r_dtheta_2 = 2*e**2*h**2**2*np.sin(theta/sigma)**2/(GM*sigma**2*(e*np.cos(theta/sigma) + 1)**3) + e*h**2*np.cos(theta/sigma)/(GM*sigma**2*(e*np.cos(theta/sigma) + 1)**2)
+    domega_dtheta = -2*GM**2*e*(e*np.cos(theta/sigma) + 1)*np.sin(theta/sigma)/(h**3*sigma)
+    d2r_dt2 = GM**3*e*(e*np.cos(theta/sigma) + 1)**2*np.cos(theta/sigma)/(h**4*sigma**2)
+    d2theta_dt2 = -2*GM**4*e*(e*np.cos(theta/sigma) + 1)**3*np.sin(theta/sigma)/(h**6*sigma)
+    return r, dr_dt, d2r_dt2, theta_dot
+
 
 
 def error_function(x):
     def integrand(theta):
-        r, r_dot, r_double_dot = r_derivatives(theta, h, e, GM, x)
-        theta_dot = h / r**2
+        r, r_dot, r_double_dot,theta_dot = r_derivatives(theta, h, e, GM, x)
         v_squared = r_dot**2 + r**2 * theta_dot**2
         c = 299792458
         vc = v_squared / c**2
@@ -37,6 +41,7 @@ def error_function(x):
         a_theoretical = -GM /gamma_v/ r ** 2/B
         a_numerical = r_double_dot - r * theta_dot ** 2  # Assuming r_double_dot is defined to calculate \ddot{r}
         return (a_theoretical - a_numerical)**2
+
     sigma = x[0]
     integral_error, _ = quad(integrand, 0, 2*np.pi/sigma, epsabs=1e-14, epsrel=1e-14)
     return 100*integral_error
@@ -51,7 +56,7 @@ print("Optimized sigma:", result.x)
 orbital_period_days = 88  # Orbital period of Mercury in days
 days_per_year = 365.25  # Average number of days per year, accounting for leap years
 years_per_century = 100  # Number of years in a century
-optimized_sigma = result.x[0] # The optimized value for sigma
+optimized_sigma = result.x[0]# The optimized value for sigma
 optimized_eccentricity = result.x[1]*e
 
 # Calculate the number of orbits Mercury completes in a century
