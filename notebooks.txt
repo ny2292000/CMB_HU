@@ -1,0 +1,42 @@
+ Volume in drive C has no label.
+ Volume Serial Number is BAF8-562C
+
+ Directory of C:\Users\ny229\Dropbox\AAA_Papers_2022_Folder\AAA_CMB_HU_latest_to_git
+
+09/24/2024  10:58 AM            39,258 AAA_Final_4D_Cross_Product.ipynb
+06/13/2024  06:49 PM           718,405 AAA_Final_Alpha_Analysis (DESKTOP-V28QSRE's conflicted copy 2024-05-03).ipynb
+09/24/2024  10:47 AM            19,549 AAA_Final_Alpha_Analysis.ipynb
+03/28/2024  10:38 PM           (1,967) AAA_Final_Approximations4UniverseMap.ipynb
+10/17/2024  01:00 PM          (14,232) AAA_Final_Astroquery.ipynb
+09/24/2024  10:54 AM         (610,844) AAA_Final_BigPopPaperFigures.ipynb
+09/24/2024  11:10 AM       (6,114,569) AAA_Final_CMB_Modeling_UniverseMap.ipynb
+03/30/2024  01:13 AM          (38,044) AAA_Final_CMB_Modeling_UniverseMap.py
+04/12/2024  06:52 AM         (405,503) AAA_Final_Creating a circular wave for articles.ipynb
+10/08/2024  09:01 PM          (23,489) AAA_Final_Derivation_of_Laws-3D.ipynb
+11/01/2024  07:21 AM            31,421 AAA_Final_Derivation_of_Laws-3D_4_Body_1.ipynb
+05/01/2024  11:29 PM          (13,495) AAA_Final_Derivation_of_Laws-3D_4_Body_1.md
+10/08/2024  07:52 PM          (23,377) AAA_Final_Derivation_of_Laws-3D_4_Body_2.ipynb
+06/06/2024  06:22 PM         (563,307) AAA_Final_DilatonFielPlots.ipynb
+04/10/2024  11:22 AM          (52,848) AAA_Final_DimensionalityProbDistribution.ipynb
+03/29/2024  01:45 PM          (46,675) AAA_Final_FermiParadox.ipynb
+04/23/2024  05:27 PM           (5,885) AAA_Final_FrameDragging_BlackHole_Sun.ipynb
+09/24/2024  10:13 AM         (133,895) AAA_Final_GravitationalLensing_HU.ipynb
+05/02/2024  08:00 AM           (2,119) AAA_Final_Gravitational_Light_Deflection_ClassicalMechanics.ipynb
+05/25/2024  09:56 PM          (15,780) AAA_Final_HyperbolaMaterialBody_HU.ipynb
+03/29/2024  01:49 PM           (5,180) AAA_Final_Initial4DRadius.ipynb
+03/27/2024  06:23 PM           (2,761) AAA_Final_LoadRemoteFiles.ipynb
+11/01/2024  07:51 AM           157,547 AAA_Final_MercuryPerihelionCalculation_HU.ipynb
+03/29/2024  06:37 PM          (42,598) AAA_Final_NotebookClass.ipynb
+06/06/2024  07:21 PM         (277,424) AAA_Final_OpticalPathOfAncientPhotons.ipynb
+08/27/2024  11:21 AM         (385,544) AAA_Final_SN1a-DualOptimization.ipynb
+09/24/2024  10:11 AM         (463,481) AAA_Final_SN1a-short.ipynb
+08/27/2024  11:26 AM         (262,429) AAA_Final_SN1a-SingleOptimization.ipynb
+08/26/2024  10:10 PM         (776,385) AAA_Final_SN1a.ipynb
+05/20/2024  09:24 AM         (177,728) AAA_Final_SN1a_TiredLight.ipynb
+10/23/2024  07:42 PM           (4,353) AAA_Final_The_Mass_and_Radius_of_the_Universe.ipynb
+04/08/2024  07:40 AM         (200,182) AAA_Final_TullyFisher.ipynb
+05/07/2024  08:49 AM             6,197 AAA_Final_TwinParadox.ipynb
+03/29/2024  01:51 PM         (159,592) AAA_Final_VelocityEffectOnFD_Tunneling_DilatonField.ipynb
+05/28/2024  10:58 PM         (223,750) AAA_Final_VenusPerihelionCalculation_HU.ipynb
+              35 File(s)     12,019,813 bytes
+               0 Dir(s)  619,118,084,096 bytes free
