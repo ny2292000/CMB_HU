@@ -151,3 +151,4 @@ dmypy.json
 .idea/other.xml
 .idea/vcs.xml
 /.ipynb_checkpoints/
+.DS_Store
