@@ -1,8 +1,12 @@
+ace_tools_open==0.1.0
 anyio @ file:///croot/anyio_1706220167567/work
+anywidget==0.9.13
 argon2-cffi @ file:///opt/conda/conda-bld/argon2-cffi_1645000214183/work
 argon2-cffi-bindings @ file:///work/ci_py311/argon2-cffi-bindings_1676823553406/work
-astropy==6.1.3
-astropy-iers-data==0.2024.9.23.0.31.43
+arrow==1.3.0
+astropy==7.0.0
+astropy-iers-data==0.2024.12.30.0.33.36
+astropy_healpix==1.0.3
 astroquery==0.4.7
 asttokens @ file:///opt/conda/conda-bld/asttokens_1646925590279/work
 async-lru @ file:///croot/async-lru_1699554519285/work
@@ -12,13 +16,16 @@ backports.tarfile==1.2.0
 beautifulsoup4 @ file:///croot/beautifulsoup4-split_1718029820055/work
 bidict==0.23.1
 bleach @ file:///opt/conda/conda-bld/bleach_1641577558959/work
+boto3==1.35.69
+botocore==1.35.69
 Brotli @ file:///croot/brotli-split_1714483155106/work
+cdshealpix==0.7.1
 certifi @ file:///croot/certifi_1725551672989/work/certifi
 cffi @ file:///croot/cffi_1726856441404/work
 charset-normalizer @ file:///croot/charset-normalizer_1721748349566/work
 comm @ file:///croot/comm_1709322850197/work
 contourpy==1.3.0
-cryptography==43.0.1
+cryptography==44.0.2
 cycler==0.12.1
 debugpy @ file:///croot/debugpy_1690905042057/work
 decorator @ file:///opt/conda/conda-bld/decorator_1643638310831/work
@@ -27,23 +34,33 @@ et-xmlfile==1.1.0
 executing @ file:///opt/conda/conda-bld/executing_1646925071911/work
 fastjsonschema @ file:///work/ci_py311_2/python-fastjsonschema_1679340124475/work
 fonttools==4.54.0
+fqdn==1.5.1
+geographiclib==2.0
+geopy==2.4.1
 h11 @ file:///croot/h11_1706652277403/work
 healpy==1.17.3
 html5lib==1.1
 httpcore @ file:///croot/httpcore_1706728464539/work
 httpx @ file:///croot/httpx_1723474802858/work
+hugalaxy @ file:///mnt/sda1/Dropbox/CLionProjects/HU_GalaxyPackage/dist/hugalaxy-0.0.1-cp311-cp311-linux_x86_64.whl#sha256=eae118a362315acc57b118cc84f866c2994ea27cac08fc4763e33bcb83fca1c2
 idna @ file:///croot/idna_1714398848350/work
 importlib_metadata==8.5.0
+ipyaladin==0.5.2
 ipykernel @ file:///croot/ipykernel_1705933831282/work
 ipython @ file:///croot/ipython_1726064227985/work
 ipywidgets @ file:///croot/ipywidgets_1709574692113/work
+isoduration==20.11.0
+itables==2.2.4
 jaraco.classes==3.4.0
 jaraco.context==6.0.1
 jaraco.functools==4.0.2
 jedi @ file:///croot/jedi_1721058342488/work
 jeepney==0.8.0
 Jinja2 @ file:///croot/jinja2_1716993405101/work
+jmespath==1.0.1
+joblib==1.4.2
 json5 @ file:///tmp/build/80754af9/json5_1624432770122/work
+jsonpointer==3.0.0
 jsonschema @ file:///croot/jsonschema_1699041609003/work
 jsonschema-specifications @ file:///croot/jsonschema-specifications_1699032386549/work
 jupyter-events @ file:///croot/jupyter_events_1718738097486/work
@@ -60,16 +77,20 @@ keyring==25.4.1
 kiwisolver==1.4.7
 kneed==0.8.5
 llvmlite==0.42.0
+lxml==5.3.0
 MarkupSafe @ file:///croot/markupsafe_1704205993651/work
 matplotlib==3.9.2
 matplotlib-inline @ file:///work/ci_py311/matplotlib-inline_1676823841154/work
 mistune @ file:///work/ci_py311/mistune_1676823683049/work
+mocpy==0.17.1
 more-itertools==10.5.0
 mpmath==1.3.0
 nbclient @ file:///croot/nbclient_1698934205032/work
 nbconvert @ file:///croot/nbconvert_1699022732553/work
 nbformat @ file:///croot/nbformat_1694616755618/work
 nest-asyncio @ file:///croot/nest-asyncio_1708532673751/work
+networkx==3.4.2
+notebook==7.2.2
 notebook_shim @ file:///croot/notebook-shim_1699455894279/work
 numba==0.59.0
 numpy==1.26.4
@@ -86,46 +107,69 @@ pooch==1.8.2
 prometheus-client @ file:///work/ci_py311_2/prometheus_client_1679340520168/work
 prompt-toolkit @ file:///croot/prompt-toolkit_1704404351921/work
 psutil @ file:///work/ci_py311_2/psutil_1679337388738/work
+psygnal==0.11.1
 ptyprocess @ file:///tmp/build/80754af9/ptyprocess_1609355006118/work/dist/ptyprocess-0.7.0-py2.py3-none-any.whl
 pure-eval @ file:///opt/conda/conda-bld/pure_eval_1646925070566/work
 PyAstronomy==0.22.0
 pycparser @ file:///tmp/build/80754af9/pycparser_1636541352034/work
 pyerfa==2.0.1.4
 Pygments @ file:///croot/pygments_1684279966437/work
+PyMuPDF==1.24.11
 pyparsing==3.1.4
+pyproj==3.7.0
 pyshtools==4.13.1
 PySocks @ file:///work/ci_py311/pysocks_1676822712504/work
+pytesseract==0.3.13
 python-dateutil @ file:///croot/python-dateutil_1716495738603/work
+python-docx==1.1.2
 python-json-logger @ file:///croot/python-json-logger_1683823803357/work
+python-pptx==1.0.2
+pytils==0.4.1
 pytz @ file:///croot/pytz_1713974312559/work
-pyvo==1.5.2
+pyvo==1.6
 PyYAML @ file:///croot/pyyaml_1698096049011/work
 pyzmq @ file:///croot/pyzmq_1705605076900/work
 quantities==0.16.0
 referencing @ file:///croot/referencing_1699012038513/work
+regions==0.10
 requests @ file:///croot/requests_1721410876868/work
 rfc3339-validator @ file:///croot/rfc3339-validator_1683077044675/work
 rfc3986-validator @ file:///croot/rfc3986-validator_1683058983515/work
+rise==5.7.1
 rpds-py @ file:///croot/rpds-py_1698945930462/work
+s3transfer==0.10.4
+schedule==1.2.2
+scikit-learn==1.6.0
 scipy==1.14.1
+sdss==1.1.1
+seaborn==0.13.2
 SecretStorage==3.3.3
 Send2Trash @ file:///croot/send2trash_1699371139552/work
+simplekml==1.3.6
 six @ file:///tmp/build/80754af9/six_1644875935023/work
 sniffio @ file:///croot/sniffio_1705431295498/work
 soupsieve @ file:///croot/soupsieve_1696347547217/work
 stack-data @ file:///opt/conda/conda-bld/stack_data_1646927590127/work
 sympy==1.13.3
+tabulate==0.9.0
 terminado @ file:///work/ci_py311/terminado_1677696151350/work
+threadpoolctl==3.5.0
 tinycss2 @ file:///work/ci_py311/tinycss2_1676823757641/work
 tornado @ file:///croot/tornado_1718740109488/work
 tqdm==4.66.5
 traitlets @ file:///croot/traitlets_1718227057033/work
+types-python-dateutil==2.9.0.20241003
 typing_extensions @ file:///croot/typing_extensions_1715268824938/work
 tzdata==2024.2
+uri-template==1.3.0
 urllib3 @ file:///croot/urllib3_1718912636303/work
 wcwidth @ file:///Users/ktietz/demo/mc3/conda-bld/wcwidth_1629357192024/work
+webcolors==24.8.0
 webencodings==0.5.1
 websocket-client @ file:///croot/websocket-client_1715878298792/work
 widgetsnbextension @ file:///croot/widgetsnbextension_1709322880396/work
 xarray==2024.9.0
+xlrd==2.0.1
+XlsxWriter==3.2.0
+yt-dlp==2025.1.26
 zipp==3.20.2
