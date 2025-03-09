@@ -150,4 +150,7 @@ dmypy.json
 .idea/modules.xml
 .idea/other.xml
 .idea/vcs.xml
-/.ipynb_checkpoints/
+**/.ipynb_checkpoints/
+**/.DS_Store
+**/*.fits
+**/*.npy
