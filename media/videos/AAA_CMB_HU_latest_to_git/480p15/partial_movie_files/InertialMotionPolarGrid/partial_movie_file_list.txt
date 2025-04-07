@@ -1,0 +1,3 @@
+# This file is used internally by FFMPEG.
+file 'file:/mnt/Dropbox/Dropbox/AAA_Papers_2022_Folder/AAA_CMB_HU_latest_to_git/media/videos/AAA_CMB_HU_latest_to_git/480p15/partial_movie_files/InertialMotionPolarGrid/2967248326_4141849542_686338582.mp4'
+file 'file:/mnt/Dropbox/Dropbox/AAA_Papers_2022_Folder/AAA_CMB_HU_latest_to_git/media/videos/AAA_CMB_HU_latest_to_git/480p15/partial_movie_files/InertialMotionPolarGrid/420438599_2631580503_2179860269.mp4'
